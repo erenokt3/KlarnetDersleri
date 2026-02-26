@@ -8,45 +8,32 @@
     :root { --p: #4f46e5; --s: #10b981; --c: #ef4444; }
     body { font-family: 'Inter', sans-serif; background: #f8fafc; margin: 0; padding: 10px; display: flex; justify-content: center; }
     .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 480px; box-sizing: border-box; }
-    
-    /* GİRİŞ EKRANI ÖZEL */
     .welcome-text { text-align: center; margin-bottom: 30px; }
     .welcome-text h1 { margin: 0; font-size: 24px; color: var(--p); letter-spacing: 1px; font-weight: 800; }
     .welcome-text p { margin: 5px 0; font-size: 16px; color: #64748b; font-weight: 500; }
     .welcome-text h2 { margin: 10px 0; font-size: 20px; color: var(--p); font-weight: 800; }
-
     .nav { display: flex; gap: 5px; margin-bottom: 20px; background: #f1f5f9; padding: 4px; border-radius: 10px; }
     .nav button { flex: 1; padding: 10px 5px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; color: #64748b; background: transparent; font-size: 11px; }
     .nav button.active { background: white; color: var(--p); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .status-bar { display: flex; justify-content: space-between; background: #eef2ff; padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 13px; font-weight: bold; }
-    
     .slot { display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 10px; border: 1px solid #f1f5f9; margin-bottom: 8px; font-size: 14px; }
     .slot-past { opacity: 0.5; background: #f8fafc; border-left: 5px solid #cbd5e1; }
     .slot-active { background: white; border-left: 5px solid var(--p); }
-    
     .ts { font-size: 10px; color: #94a3b8; display: block; margin-top: 4px; }
     .badge { font-size: 10px; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
     .b-red { background: #fee2e2; color: #b91c1c; }
     .b-green { background: #dcfce7; color: #15803d; }
-    
-    /* HAKLARIM SEKME DÜZENİ (DERSLERİME BENZETİLDİ) */
+    .b-blue { background: #dbeafe; color: #1e40af; }
     .log-item { border-left: 5px solid var(--p); padding: 14px; margin-bottom: 10px; background: #f9fafb; border-radius: 12px; font-size: 13px; line-height: 1.5; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
-    
     button.btn-act { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 12px; }
     input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
-    input:focus { border-color: var(--p); }
   </style>
 </head>
 <body>
 
 <div class="card" id="loginBox">
-  <div class="welcome-text">
-    <h1>HARUN AKKAYA</h1>
-    <p>Özel Ders Sistemine</p>
-    <h2>HOŞ GELDİNİZ</h2>
-  </div>
-  <input id="u" type="text" placeholder="Kullanıcı Adı">
-  <input id="p" type="password" placeholder="Şifre">
+  <div class="welcome-text"><h1>EREN OKAT</h1><p>Özel Ders Sistemine</p><h2>HOŞ GELDİNİZ</h2></div>
+  <input id="u" type="text" placeholder="Kullanıcı Adı"><input id="p" type="password" placeholder="Şifre">
   <button onclick="login()" style="width:100%; padding:16px; background:var(--p); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; font-size:16px; margin-top:10px;">Giriş Yap</button>
 </div>
 
@@ -71,7 +58,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzX3mkE0z65A820TqGrDhl-wB5Z_nL84ll-4B2GEAB6G-5hwFrcDgK6NdZmyMMg6zR-bA/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWoYtT62SAk6CPUxT03oTO3AvLRamcfPrXv2-momRx8cbmSaxrvD6UTUjKXo-CVu6kyQ/exec";
   const G_ISIM = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
   let user = {}, slots = [], selProg = "", selDone = "";
 
@@ -79,18 +66,16 @@
     const res = await fetch(`${SCRIPT_URL}?action=login&user=${u.value}&pass=${p.value}`, {method:'POST'});
     const d = await res.json();
     if(d.success) {
-      user = { name: u.value, role: d.role, hak: d.hak, log: d.log };
+      user = { name: u.value, role: d.role, hak: d.hak, log: d.log, resetDate: d.resetDate, pass: p.value };
       loginBox.style.display="none"; 
       if(user.role === 'admin') { adminBox.style.display="block"; adInit(); } 
-      else { studentBox.style.display="block"; stU.innerText = user.name; stH.innerText = "Kalan Hak: " + user.hak; stInit(); }
-    } else alert("Giriş bilgileri hatalı!"); 
+      else { studentBox.style.display="block"; stU.innerText = user.name; updateUI(); stInit(); }
+    } else alert(d.msg); 
   }
 
-  function getDayName(t) {
-    const [g, a, y] = t.split(".").map(Number);
-    return G_ISIM[new Date(y, a - 1, g).getDay()];
-  }
-
+  function updateUI() { stH.innerText = "Kalan Hak: " + user.hak; }
+  function getDayName(t) { const [g, a, y] = t.split(".").map(Number); return G_ISIM[new Date(y, a - 1, g).getDay()]; }
+  
   function adInit() { 
     flatpickr("#adPick", { inline: true, locale: "tr", onChange: (d, s) => { selProg = s; renderAdP(); } });
     flatpickr("#donePick", { inline: true, locale: "tr", onChange: (d, s) => { selDone = s; renderDone(); } });
@@ -101,6 +86,12 @@
   async function load() {
     const res = await fetch(`${SCRIPT_URL}?action=loadData`, {method:'POST'});
     slots = await res.json();
+    
+    if(user.role !== 'admin') {
+       const resU = await fetch(`${SCRIPT_URL}?action=login&user=${user.name}&pass=${user.pass}`, {method:'POST'});
+       const dU = await resU.json();
+       if(dU.success) { user.hak = dU.hak; user.log = dU.log; updateUI(); }
+    }
     if(user.role === 'admin') { renderAdP(); renderAdH(); renderDone(); } else { renderStT(); renderStM(); renderL(); }
   }
 
@@ -125,9 +116,9 @@
   function renderAdP() {
     const filtered = slots.filter(s => s.isoTarih === selProg);
     adList.innerHTML = filtered.length ? filtered.map(s => {
-      const isT = s.ogrenci !== "" && !s.ogrenci.includes("İPTAL");
+      const isTaken = s.ogrenci !== "" && !s.ogrenci.includes("İPTAL");
       const past = checkT(s.tarih, s.saat);
-      return `<div class="slot ${past?'slot-past':'slot-active'}"><div><b>${s.saat}</b><br><small>${isT?s.ogrenci:'BOŞ'}</small></div>${isT && !past ? `<button class="btn-act" style="background:var(--c)" onclick="cancel(${s.row})">İptal</button>` : (isT || past ? `<span class="badge b-green">BİTTİ</span>` : `<span class="badge b-blue" style="color:var(--p)">AKTİF</span>`)}</div>`;
+      return `<div class="slot ${past?'slot-past':'slot-active'}"><div><b>${s.saat}</b><br><small>${isTaken?s.ogrenci:'BOŞ'}</small></div>${isTaken && !past ? `<button class="btn-act" style="background:var(--c)" onclick="cancel(${s.row})">İptal</button>` : (isTaken || past ? `<span class="badge b-green">BİTTİ</span>` : `<span class="badge b-blue" style="color:white">AKTİF</span>`)}</div>`;
     }).join('') : "<p style='text-align:center'>Ders yok.</p>";
   }
 
@@ -136,8 +127,9 @@
     hist.sort((a,b) => b.isoTarih.localeCompare(a.isoTarih));
     adReport.innerHTML = hist.map(s => {
       const isC = s.ogrenci.includes("İPTAL");
+      const past = checkT(s.tarih, s.saat);
       const match = s.ogrenci.match(/\((.*?)\)/);
-      return `<div class="slot slot-past"><div style="width:100%"><b>${s.tarih} ${getDayName(s.tarih)} - ${s.saat}</b><br><small>Öğrenci: ${s.ogrenci.split(" (")[0]} (Hak: ${s.ogr_hak})</small><span class="ts">${isC && match ? 'İptal: ' + match[1] : s.islem_saati}</span></div><div>${isC?`<span class="badge b-red">İPTAL</span>`:`<span class="badge b-green">BİTTİ</span>`}</div></div>`;
+      return `<div class="slot slot-past"><div style="width:100%"><b>${s.tarih} ${getDayName(s.tarih)} - ${s.saat}</b><br><small>Öğrenci: ${s.ogrenci.split(" (")[0]} (Hak: ${s.ogr_hak})</small><span class="ts">${isC && match ? 'İptal: ' + match[1] : s.islem_saati}</span></div><div>${isC?`<span class="badge b-red">İPTAL</span>`:(past?`<span class="badge b-green">BİTTİ</span>`:`<span class="badge b-blue" style="color:white">AKTİF</span>`)}</div></div>`;
     }).join('');
   }
 
@@ -149,8 +141,9 @@
   function renderStT() {
     const filtered = slots.filter(s => s.isoTarih === selProg);
     stList.innerHTML = filtered.length ? filtered.map(s => {
-      const isT = s.ogrenci !== "" && !s.ogrenci.includes("İPTAL");
-      const isMine = s.ogrenci.includes(user.name);
+      const isCancelled = s.ogrenci.includes("İPTAL");
+      const isT = s.ogrenci !== "" && !isCancelled;
+      const isMine = s.ogrenci.includes(user.name) && !isCancelled;
       const past = checkT(s.tarih, s.saat);
       let statusHtml = "";
       if (isMine) statusHtml = `<span style="color:var(--p); font-weight:bold; font-size:11px;">DOLU (Senin Dersin)</span>`;
@@ -179,7 +172,7 @@
 
   async function book(row) {
     const r = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"book", row, user: user.name})});
-    const d = await r.json(); alert(d.msg); if(d.success) load();
+    const d = await r.json(); alert(d.msg); if(d.success) await load();
   }
 
   async function cancel(row) {
@@ -187,11 +180,9 @@
     const [h, m] = slot.saat.split("-")[0].split(".").map(Number);
     const [g, ay, y] = slot.tarih.split(".").map(Number);
     const diff = (new Date(y, ay-1, g, h, m, 0) - new Date()) / 3600000;
-    let m_u = "İptal edilsin mi?";
-    if (user.role !== 'admin' && diff < 24) m_u = "DİKKAT: Dersinize 24 saatten az kaldı! İptal ederseniz iade yapılmaz. Onay?";
-    if(!confirm(m_u)) return;
+    if (user.role !== 'admin' && diff < 24 && !confirm("DİKKAT: Dersinize 24 saatten az kaldı! İptal ederseniz iade yapılmaz. Onay?")) return;
     const r = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"cancel", row, role: user.role, user: user.name})});
-    const d = await r.json(); alert(d.msg); if(d.success) load();
+    const d = await r.json(); alert(d.msg); if(d.success) await load();
   }
 </script>
 </body>
