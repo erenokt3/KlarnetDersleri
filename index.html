@@ -20,7 +20,7 @@
     .b-blue { background: #dbeafe; color: #1e40af; }
     button.btn-act { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 12px; }
     input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-    .log-item { border-left: 3px solid var(--p); padding: 8px; margin-bottom: 8px; background: #f9fafb; border-radius: 4px; font-size: 12px; }
+    .log-item { border-left: 3px solid var(--p); padding: 10px; margin-bottom: 10px; background: #f9fafb; border-radius: 8px; font-size: 12px; line-height: 1.5; color: #334155; }
   </style>
 </head>
 <body>
@@ -57,8 +57,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXbDD2YWFJu4QGbZnudzxwjOIyrEM2dkJT1wbW8mbE8NBygeTcPSkjaHlN60Oj4ZY8_w/exec";
-  const GUNS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwm4HBGQgyziT7cAY3NkGi5wnbZ6lyz6Iqs86oM8cR-z1tEOnF1Vz2JDeddPbw3sfQzAw/exec";
   let user = {}, slots = [], sel = "";
 
   async function login() {
@@ -123,7 +122,7 @@
         <div style="width:100%">
           <b>${s.tarih.split("-").reverse().join(".")} - ${s.saat}</b><br>
           <small>Öğrenci: ${s.ogrenci.split(" (")[0]} (Kalan Hak: ${s.ogr_hak})</small>
-          ${isC ? `<span class="ts">İşlem: ${details[2]} (${details[3]})<br>İade: ${details[1]}</span>` : `<span class="ts">${s.islem_saati}</span>`}
+          ${isC ? `<span class="ts">İptal: ${details[2]} - ${details[1]}</span>` : `<span class="ts">${s.islem_saati}</span>`}
         </div>
         <div>${isC ? `<span class="badge b-red">İPTAL</span>` : (isPast ? `<span class="badge b-green">BİTTİ</span>` : `<span class="badge b-blue" style="color:white">AKTİF</span>`)}</div>
       </div>`;
@@ -146,7 +145,7 @@
     stReport.innerHTML = my.map(s => {
       const isC = s.ogrenci.includes("İPTAL");
       const details = isC ? s.ogrenci.match(/\((.*?)\)/)[1].split("-") : [];
-      return `<div class="slot"><div><b>${s.tarih.split("-").reverse().join(".")} - ${s.saat}</b>${isC ? `<span class="ts">${details[2]} Tarafından İptal Edildi (${details[1]})<br>${details[3]}</span>` : `<span class="ts">${s.islem_saati}</span>`}</div>${!isC ? `<button class="btn-act" style="background:var(--c)" onclick="cancel(${s.row})">İptal</button>` : `<span class="badge b-red">İPTAL</span>`}</div>`;
+      return `<div class="slot"><div><b>${s.tarih.split("-").reverse().join(".")} - ${s.saat}</b>${isC ? `<span class="ts">İptal Edildi (${details[1]})</span>` : `<span class="ts">${s.islem_saati}</span>`}</div>${!isC ? `<button class="btn-act" style="background:var(--c)" onclick="cancel(${s.row})">İptal</button>` : `<span class="badge b-red">İPTAL</span>`}</div>`;
     }).join('');
   }
 
@@ -164,12 +163,10 @@
     const slot = slots.find(s => s.row === row);
     const sDate = new Date(slot.tarih + "T" + slot.saat.split(".")[0].padStart(2,'0') + ":00:00");
     const diff = (sDate - new Date()) / 3600000;
-    
     let m = "İptal etmek istediğinize emin misiniz?";
     if (user.role !== 'admin' && diff < 24) {
-      m = "DİKKAT: Dersinize 24 saatten az bir süre kalmıştır!\n\nBu aşamada yapılacak iptallerde DERS HAKKI İADESİ YAPILMAYACAKTIR.\n\nİptal işlemine devam etmek istiyor musunuz?";
+      m = "DİKKAT: Derse 24 saatten az kalmış!\n\nİptal ederseniz DERS HAKKI İADESİ YAPILMAYACAKTIR.\n\nOnaylıyor musunuz?";
     }
-
     if(!confirm(m)) return;
     const r = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"cancel", row, role: user.role, user: user.name})});
     const d = await r.json(); alert(d.msg); if(d.success) { if(user.role !== 'admin') { user.hak = d.yeniHak; user.log = d.yeniLog; updateUI(); } load(); }
