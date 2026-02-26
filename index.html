@@ -23,8 +23,7 @@
     .badge { font-size: 10px; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
     .b-red { background: #fee2e2; color: #b91c1c; }
     .b-green { background: #dcfce7; color: #15803d; }
-    .b-blue { background: #dbeafe; color: #1e40af; }
-    .log-item { border-left: 5px solid var(--p); padding: 14px; margin-bottom: 10px; background: #f9fafb; border-radius: 12px; font-size: 13px; line-height: 1.5; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+    .log-item { border-left: 5px solid var(--p); padding: 14px; margin-bottom: 10px; background: #f9fafb; border-radius: 12px; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
     button.btn-act { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 12px; }
     input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
   </style>
@@ -43,7 +42,7 @@
   <div id="stViewT"><input type="text" id="stPick"><div id="stList" style="margin-top:15px;"></div></div>
   <div id="stViewM" style="display:none;"><div id="stReport"></div></div>
   <div id="stViewL" style="display:none;"><div id="logContent"></div></div>
-  <button style="background:#94a3b8; width:100%; color:white; border:none; padding:12px; border-radius:8px; margin-top:20px; font-weight:bold;" onclick="location.reload()">Çıkış</button>
+  <button style="background:#94a3b8; width:100%; color:white; border:none; padding:12px; border-radius:8px; margin-top:20px; font-weight:bold; cursor:pointer;" onclick="logout()">Güvenli Çıkış</button>
 </div>
 
 <div class="card" id="adminBox" style="display:none;">
@@ -52,7 +51,7 @@
   <div id="adViewP"><input type="text" id="adPick"><div id="adList" style="margin-top:15px;"></div></div>
   <div id="adViewH" style="display:none;"><div id="adReport"></div></div>
   <div id="adViewD" style="display:none;"><input type="text" id="donePick"><div id="doneList" style="margin-top:15px;"></div></div>
-  <button style="background:#64748b; width:100%; color:white; border:none; padding:12px; border-radius:8px; margin-top:20px; font-weight:bold;" onclick="location.reload()">Hoca Çıkışı</button>
+  <button style="background:#64748b; width:100%; color:white; border:none; padding:12px; border-radius:8px; margin-top:20px; font-weight:bold; cursor:pointer;" onclick="logout()">Hoca Çıkışı</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -61,16 +60,42 @@
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWoYtT62SAk6CPUxT03oTO3AvLRamcfPrXv2-momRx8cbmSaxrvD6UTUjKXo-CVu6kyQ/exec";
   const G_ISIM = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
   let user = {}, slots = [], selProg = "", selDone = "";
+  let refreshTimer;
+
+  // SAYFA YÜKLENDİĞİNDE OTOMATİK KONTROL
+  window.onload = function() {
+    const savedUser = localStorage.getItem('harunAkkayaUser');
+    if (savedUser) {
+      user = JSON.parse(savedUser);
+      loginBox.style.display="none";
+      if (user.role === 'admin') { adminBox.style.display="block"; adInit(); } 
+      else { studentBox.style.display="block"; stU.innerText = user.name; updateUI(); stInit(); }
+      startLiveUpdate(); // Canlı güncellemeyi başlat
+    }
+  };
 
   async function login() {
     const res = await fetch(`${SCRIPT_URL}?action=login&user=${u.value}&pass=${p.value}`, {method:'POST'});
     const d = await res.json();
     if(d.success) {
-      user = { name: u.value, role: d.role, hak: d.hak, log: d.log, resetDate: d.resetDate, pass: p.value };
+      user = { name: u.value, role: d.role, hak: d.hak, log: d.log, pass: p.value };
+      localStorage.setItem('harunAkkayaUser', JSON.stringify(user)); // BİLGİLERİ KAYDET
       loginBox.style.display="none"; 
       if(user.role === 'admin') { adminBox.style.display="block"; adInit(); } 
       else { studentBox.style.display="block"; stU.innerText = user.name; updateUI(); stInit(); }
+      startLiveUpdate();
     } else alert(d.msg); 
+  }
+
+  function logout() {
+    localStorage.removeItem('harunAkkayaUser'); // KAYDI SİL
+    clearInterval(refreshTimer);
+    location.reload();
+  }
+
+  function startLiveUpdate() {
+    // 30 saniyede bir sessizce verileri tazele
+    refreshTimer = setInterval(load, 30000);
   }
 
   function updateUI() { stH.innerText = "Kalan Hak: " + user.hak; }
@@ -87,7 +112,7 @@
     const res = await fetch(`${SCRIPT_URL}?action=loadData`, {method:'POST'});
     slots = await res.json();
     
-    if(user.role !== 'admin') {
+    if(user.name && user.role !== 'admin') {
        const resU = await fetch(`${SCRIPT_URL}?action=login&user=${user.name}&pass=${user.pass}`, {method:'POST'});
        const dU = await resU.json();
        if(dU.success) { user.hak = dU.hak; user.log = dU.log; updateUI(); }
@@ -101,6 +126,7 @@
     return new Date(y, ay-1, g, h, m, 0) <= new Date();
   }
 
+  // ... (Geri kalan adSwitch, stSwitch, render fonksiyonları bir önceki kodla tamamen aynı kalsın kanka)
   function adSwitch(t) {
     ['P','H','D'].forEach(k => { document.getElementById('adView'+k).style.display = (t===(k==='P'?'prog':(k==='H'?'hist':'done'))?'block':'none'); document.getElementById('adTab'+k).className = (t===(k==='P'?'prog':(k==='H'?'hist':'done'))?'active':''); });
     if(t === 'hist') renderAdH();
@@ -142,12 +168,12 @@
     const filtered = slots.filter(s => s.isoTarih === selProg);
     stList.innerHTML = filtered.length ? filtered.map(s => {
       const isCancelled = s.ogrenci.includes("İPTAL");
-      const isT = s.ogrenci !== "" && !isCancelled;
+      const isTaken = s.ogrenci !== "" && !isCancelled;
       const isMine = s.ogrenci.includes(user.name) && !isCancelled;
       const past = checkT(s.tarih, s.saat);
       let statusHtml = "";
       if (isMine) statusHtml = `<span style="color:var(--p); font-weight:bold; font-size:11px;">DOLU (Senin Dersin)</span>`;
-      else if (isT) statusHtml = `<span style="color:#94a3b8">DOLU</span>`;
+      else if (isTaken) statusHtml = `<span style="color:#94a3b8">DOLU</span>`;
       else if (past) statusHtml = `<span style="color:var(--c)">GEÇTİ</span>`;
       else statusHtml = `<button class="btn-act" style="background:var(--s)" onclick="book(${s.row})">Al</button>`;
       return `<div class="slot"><span><b>${s.saat}</b></span>${statusHtml}</div>`;
