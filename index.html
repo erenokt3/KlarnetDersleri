@@ -19,13 +19,16 @@
     .slot { display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 10px; border: 1px solid #f1f5f9; margin-bottom: 8px; font-size: 14px; }
     .slot-past { opacity: 0.5; background: #f8fafc; border-left: 5px solid #cbd5e1; }
     .slot-active { background: white; border-left: 5px solid var(--p); }
-    .ts { font-size: 10px; color: #94a3b8; display: block; margin-top: 4px; }
     .badge { font-size: 10px; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
     .b-red { background: #fee2e2; color: #b91c1c; }
     .b-green { background: #dcfce7; color: #15803d; }
-    .log-item { border-left: 5px solid var(--p); padding: 14px; margin-bottom: 10px; background: #f9fafb; border-radius: 12px; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+    .b-blue { background: #dbeafe; color: #1e40af; }
+    .super-filter { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 2px solid var(--p); font-weight: bold; color: var(--p); outline: none; }
     button.btn-act { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 12px; }
+    .btn-del { background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; margin-left: 5px; }
     input { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
+    .log-item { border-left: 5px solid var(--p); padding: 14px; margin-bottom: 10px; background: #f9fafb; border-radius: 12px; font-size: 13px; }
+    .ts { font-size: 10px; color: #94a3b8; display: block; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -37,8 +40,12 @@
 </div>
 
 <div class="card" id="studentBox" style="display:none;">
-  <div class="status-bar"><span id="stU"></span><b id="stH"></b></div>
-  <div class="nav"><button id="stTabT" class="active" onclick="stSwitch('take')">Ders Al</button><button id="stTabM" onclick="stSwitch('my')">Derslerim</button><button id="stTabL" onclick="stSwitch('logs')">Haklarım</button></div>
+  <div class="status-bar" style="background:#eef2ff; color:var(--p);"><span id="stU"></span><b id="stH"></b></div>
+  <div class="nav">
+    <button id="stTabT" class="active" onclick="stSwitch('take')">Ders Al</button>
+    <button id="stTabM" onclick="stSwitch('my')">Derslerim</button>
+    <button id="stTabL" onclick="stSwitch('logs')">Haklarım</button>
+  </div>
   <div id="stViewT"><input type="text" id="stPick"><div id="stList" style="margin-top:15px;"></div></div>
   <div id="stViewM" style="display:none;"><div id="stReport"></div></div>
   <div id="stViewL" style="display:none;"><div id="logContent"></div></div>
@@ -46,170 +53,228 @@
 </div>
 
 <div class="card" id="adminBox" style="display:none;">
-  <h3 style="color:var(--p); text-align:center; margin-bottom:15px;">HOCA YÖNETİM PANELİ</h3>
-  <div class="nav"><button id="adTabP" class="active" onclick="adSwitch('prog')">Program</button><button id="adTabH" onclick="adSwitch('hist')">Ders Geçmişi</button><button id="adTabD" onclick="adSwitch('done')">Yapılanlar</button></div>
-  <div id="adViewP"><input type="text" id="adPick"><div id="adList" style="margin-top:15px;"></div></div>
+  <div class="status-bar" style="background:#f1f5f9; color:#475569;"><span id="adU"></span><b id="roleBadge"></b></div>
+  
+  <h3 id="panelTitle" style="color:var(--p); text-align:center; margin-bottom:15px;"></h3>
+  
+  <select id="hocaSelect" class="super-filter" style="display:none;" onchange="renderAll()"></select>
+  <div class="nav">
+    <button id="adTabP" class="active" onclick="adSwitch('prog')">Program</button>
+    <button id="adTabH" onclick="adSwitch('hist')">Geçmiş</button>
+    <button id="adTabD" onclick="adSwitch('done')">Yapılanlar</button>
+  </div>
+  <div id="adViewP">
+    <input type="text" id="adPick">
+    <div id="addArea" style="display:none; margin-top:15px; justify-content:space-between; align-items:center;">
+      <span id="selDateLabel" style="font-size:12px; font-weight:bold; color:var(--p)"></span>
+      <button class="btn-act" style="background:var(--p)" onclick="addSlot()">+ Ders Ekle</button>
+    </div>
+    <div id="adList" style="margin-top:10px;"></div>
+  </div>
   <div id="adViewH" style="display:none;"><div id="adReport"></div></div>
   <div id="adViewD" style="display:none;"><input type="text" id="donePick"><div id="doneList" style="margin-top:15px;"></div></div>
-  <button style="background:#64748b; width:100%; color:white; border:none; padding:12px; border-radius:8px; margin-top:20px; font-weight:bold; cursor:pointer;" onclick="logout()">Hoca Çıkışı</button>
+  <button style="background:#64748b; width:100%; color:white; border:none; padding:12px; border-radius:8px; margin-top:20px; font-weight:bold; cursor:pointer;" onclick="logout()">Çıkış</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWoYtT62SAk6CPUxT03oTO3AvLRamcfPrXv2-momRx8cbmSaxrvD6UTUjKXo-CVu6kyQ/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySTPnf9ywh_oKMqKNw__io7c3BxUm0C15YYIFPS1pVLkOEXT5IQ8o12sk5qvG7YpuKEg/exec";
   const G_ISIM = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-  let user = {}, slots = [], selProg = "", selDone = "";
+  let user = {}, slots = [], admins = [], selProg = "", currentHocaFilter = "", selDone = "";
   let refreshTimer;
 
-  // SAYFA YÜKLENDİĞİNDE OTOMATİK KONTROL
+  function sortByTime(arr) {
+    return arr.sort((a, b) => {
+      const tA = a.tarih.split('.').reverse().join('');
+      const tB = b.tarih.split('.').reverse().join('');
+      if (tA !== tB) return tA.localeCompare(tB);
+      const sA = a.saat.split('-')[0].replace('.','').padStart(4,'0');
+      const sB = b.saat.split('-')[0].replace('.','').padStart(4,'0');
+      return sA.localeCompare(sB);
+    });
+  }
+
+  function sortByStatusAndDate(arr) {
+    return arr.sort((a, b) => {
+      const isAPast = a.ogrenci.includes("İPTAL") || a.durum === "TAMAMLANDI" || checkT(a.tarih, a.saat);
+      const isBPast = b.ogrenci.includes("İPTAL") || b.durum === "TAMAMLANDI" || checkT(b.tarih, b.saat);
+      if (isAPast !== isBPast) return isAPast ? 1 : -1;
+      const dA = a.tarih.split('.').reverse().join('');
+      const dB = b.tarih.split('.').reverse().join('');
+      return isAPast ? dB.localeCompare(dA) : dA.localeCompare(dB);
+    });
+  }
+
   window.onload = function() {
-    const savedUser = localStorage.getItem('harunAkkayaUser');
-    if (savedUser) {
-      user = JSON.parse(savedUser);
-      loginBox.style.display="none";
-      if (user.role === 'admin') { adminBox.style.display="block"; adInit(); } 
-      else { studentBox.style.display="block"; stU.innerText = user.name; updateUI(); stInit(); }
-      startLiveUpdate(); // Canlı güncellemeyi başlat
-    }
+    const saved = localStorage.getItem('lessonSystemUser');
+    if (saved) { user = JSON.parse(saved); initPanel(); }
   };
 
   async function login() {
-    const res = await fetch(`${SCRIPT_URL}?action=login&user=${u.value}&pass=${p.value}`, {method:'POST'});
+    const res = await fetch(`${SCRIPT_URL}?action=login&user=${document.getElementById('u').value}&pass=${document.getElementById('p').value}`, {method:'POST'});
     const d = await res.json();
     if(d.success) {
-      user = { name: u.value, role: d.role, hak: d.hak, log: d.log, pass: p.value };
-      localStorage.setItem('harunAkkayaUser', JSON.stringify(user)); // BİLGİLERİ KAYDET
-      loginBox.style.display="none"; 
-      if(user.role === 'admin') { adminBox.style.display="block"; adInit(); } 
-      else { studentBox.style.display="block"; stU.innerText = user.name; updateUI(); stInit(); }
-      startLiveUpdate();
-    } else alert(d.msg); 
+      user = d; user.name = document.getElementById('u').value; user.pass = document.getElementById('p').value;
+      localStorage.setItem('lessonSystemUser', JSON.stringify(user));
+      initPanel();
+    } else alert(d.msg);
   }
 
-  function logout() {
-    localStorage.removeItem('harunAkkayaUser'); // KAYDI SİL
-    clearInterval(refreshTimer);
-    location.reload();
+  function initPanel() {
+    document.getElementById('loginBox').style.display="none";
+    if (user.role === 'super_admin') {
+      document.getElementById('adminBox').style.display="block";
+      document.getElementById('adU').innerText = user.name;
+      document.getElementById('roleBadge').innerText = "S. ADMİN";
+      document.getElementById('panelTitle').innerText = "SÜPER ADMİN PANELİ";
+      document.getElementById('hocaSelect').style.display = "block";
+      adInit();
+    } else if (user.role === 'admin') {
+      document.getElementById('adminBox').style.display="block";
+      document.getElementById('adU').innerText = user.name;
+      document.getElementById('roleBadge').innerText = "HOCA";
+      document.getElementById('panelTitle').innerText = "HOCA PANELİ";
+      currentHocaFilter = user.name;
+      adInit();
+    } else {
+      document.getElementById('studentBox').style.display="block";
+      document.getElementById('stU').innerText = user.name;
+      stInit();
+    }
+    startLiveUpdate();
   }
-
-  function startLiveUpdate() {
-    // 30 saniyede bir sessizce verileri tazele
-    refreshTimer = setInterval(load, 30000);
-  }
-
-  function updateUI() { stH.innerText = "Kalan Hak: " + user.hak; }
-  function getDayName(t) { const [g, a, y] = t.split(".").map(Number); return G_ISIM[new Date(y, a - 1, g).getDay()]; }
-  
-  function adInit() { 
-    flatpickr("#adPick", { inline: true, locale: "tr", onChange: (d, s) => { selProg = s; renderAdP(); } });
-    flatpickr("#donePick", { inline: true, locale: "tr", onChange: (d, s) => { selDone = s; renderDone(); } });
-    load(); 
-  }
-  function stInit() { flatpickr("#stPick", { inline: true, locale: "tr", minDate: "today", onChange: (d, s) => { selProg = s; renderStT(); } }); load(); }
 
   async function load() {
     const res = await fetch(`${SCRIPT_URL}?action=loadData`, {method:'POST'});
-    slots = await res.json();
-    
-    if(user.name && user.role !== 'admin') {
-       const resU = await fetch(`${SCRIPT_URL}?action=login&user=${user.name}&pass=${user.pass}`, {method:'POST'});
-       const dU = await resU.json();
-       if(dU.success) { user.hak = dU.hak; user.log = dU.log; updateUI(); }
+    const data = await res.json();
+    slots = data.slots;
+    admins = data.admins;
+    if (user.role === 'super_admin' && document.getElementById('hocaSelect').options.length === 0) {
+      admins.forEach(a => document.getElementById('hocaSelect').add(new Option(a + " Programı", a)));
+      currentHocaFilter = document.getElementById('hocaSelect').value;
     }
-    if(user.role === 'admin') { renderAdP(); renderAdH(); renderDone(); } else { renderStT(); renderStM(); renderL(); }
+    renderAll();
   }
 
-  function checkT(t, s) {
-    const [g, ay, y] = t.split(".").map(Number);
-    const [h, m] = s.split("-")[0].split(".").map(Number);
-    return new Date(y, ay-1, g, h, m, 0) <= new Date();
+  function renderAll() {
+    if (user.role === 'super_admin') currentHocaFilter = document.getElementById('hocaSelect').value;
+    renderAdP(); renderAdH(); renderDone(); renderStT(); renderStM(); renderL();
+    if(user.role === 'student') updateUI();
   }
 
-  // ... (Geri kalan adSwitch, stSwitch, render fonksiyonları bir önceki kodla tamamen aynı kalsın kanka)
-  function adSwitch(t) {
-    ['P','H','D'].forEach(k => { document.getElementById('adView'+k).style.display = (t===(k==='P'?'prog':(k==='H'?'hist':'done'))?'block':'none'); document.getElementById('adTab'+k).className = (t===(k==='P'?'prog':(k==='H'?'hist':'done'))?'active':''); });
-    if(t === 'hist') renderAdH();
-    if(t === 'done') renderDone();
-  }
-
-  function stSwitch(t) {
-    ['T','M','L'].forEach(k => { document.getElementById('stView'+k).style.display = (t===(k==='T'?'take':(k==='M'?'my':'logs'))?'block':'none'); document.getElementById('stTab'+k).className = (t===(k==='T'?'take':(k==='M'?'my':'logs'))?'active':''); });
-    if(t === 'logs') renderL();
-    if(t === 'my') renderM();
+  function getFilteredSlots() {
+    const filter = (user.role === 'student') ? user.sorumlu_hoca : currentHocaFilter;
+    return slots.filter(s => s.hoca === filter);
   }
 
   function renderAdP() {
-    const filtered = slots.filter(s => s.isoTarih === selProg);
-    adList.innerHTML = filtered.length ? filtered.map(s => {
+    const filtered = sortByTime(getFilteredSlots().filter(s => s.isoTarih === selProg));
+    const isSuper = user.role === 'super_admin';
+    document.getElementById('adList').innerHTML = filtered.length ? filtered.map(s => {
       const isTaken = s.ogrenci !== "" && !s.ogrenci.includes("İPTAL");
       const past = checkT(s.tarih, s.saat);
-      return `<div class="slot ${past?'slot-past':'slot-active'}"><div><b>${s.saat}</b><br><small>${isTaken?s.ogrenci:'BOŞ'}</small></div>${isTaken && !past ? `<button class="btn-act" style="background:var(--c)" onclick="cancel(${s.row})">İptal</button>` : (isTaken || past ? `<span class="badge b-green">BİTTİ</span>` : `<span class="badge b-blue" style="color:white">AKTİF</span>`)}</div>`;
-    }).join('') : "<p style='text-align:center'>Ders yok.</p>";
+      let btn = isSuper ? `<span class="badge b-blue">İZLEME</span>` : 
+                (isTaken && !past ? `<button class="btn-act" style="background:var(--c)" onclick="cancel(${s.row})">İptal</button>` : 
+                (!isTaken && !past ? `<div><button class="btn-act" style="background:var(--s)" onclick="adminBook(${s.row})">Ekle</button><button class="btn-del" onclick="deleteSlot(${s.row})">Sil</button></div>` : 
+                `<span class="badge b-green">BİTTİ</span>`));
+      return `<div class="slot ${past?'slot-past':'slot-active'}"><div><b>${s.saat}</b><br><small>${isTaken?s.ogrenci:'BOŞ'}</small></div>${btn}</div>`;
+    }).join('') : "<p style='text-align:center; padding:20px; color:#64748b;'>Ders tanımlanmamış.</p>";
   }
 
   function renderAdH() {
-    const hist = slots.filter(s => s.ogrenci !== "");
-    hist.sort((a,b) => b.isoTarih.localeCompare(a.isoTarih));
-    adReport.innerHTML = hist.map(s => {
+    const hist = sortByStatusAndDate(getFilteredSlots().filter(s => s.ogrenci !== ""));
+    document.getElementById('adReport').innerHTML = hist.map(s => {
       const isC = s.ogrenci.includes("İPTAL");
+      const isDone = s.durum === "TAMAMLANDI";
       const past = checkT(s.tarih, s.saat);
       const match = s.ogrenci.match(/\((.*?)\)/);
-      return `<div class="slot slot-past"><div style="width:100%"><b>${s.tarih} ${getDayName(s.tarih)} - ${s.saat}</b><br><small>Öğrenci: ${s.ogrenci.split(" (")[0]} (Hak: ${s.ogr_hak})</small><span class="ts">${isC && match ? 'İptal: ' + match[1] : s.islem_saati}</span></div><div>${isC?`<span class="badge b-red">İPTAL</span>`:(past?`<span class="badge b-green">BİTTİ</span>`:`<span class="badge b-blue" style="color:white">AKTİF</span>`)}</div></div>`;
-    }).join('');
+      const gun = getDayName(s.tarih);
+      let badge = isC ? `<span class="badge b-red">İPTAL</span>` : (isDone || past ? `<span class="badge b-green">BİTTİ</span>` : `<span class="badge b-blue" style="color:white">AKTİF</span>`);
+      return `<div class="slot slot-past"><div style="width:100%"><b>${s.tarih} ${gun} - ${s.saat}</b><br><small>Öğr: ${s.ogrenci.split(" (")[0]}</small><span class="ts">${isC && match ? 'İptal: ' + match[1] : (s.islem_saati || '')}</span></div><div>${badge}</div></div>`;
+    }).join('') || "<p style='text-align:center; padding:20px;'>Geçmiş bulunamadı.</p>";
   }
 
   function renderDone() {
-    const dayFiltered = slots.filter(s => s.durum === "TAMAMLANDI" && s.isoTarih === selDone);
-    doneList.innerHTML = dayFiltered.length ? dayFiltered.map(s => `<div class="slot slot-past"><div><b>${s.saat}</b><br><small>${s.ogrenci}</small></div><span class="badge b-green">TAMAMLANDI</span></div>`) : "<p style='text-align:center'>Kayıt yok.</p>";
+    const done = sortByTime(getFilteredSlots().filter(s => s.durum === "TAMAMLANDI" && (s.isoTarih === selDone || s.tarih === selDone.split('-').reverse().join('.'))));
+    document.getElementById('doneList').innerHTML = done.length ? done.map(s => `<div class="slot slot-past" style="border-left:5px solid var(--s)"><div><b>${s.saat}</b><br><small>${s.ogrenci}</small></div><span class="badge b-green">TAMAMLANDI</span></div>`).join('') : "<p style='text-align:center; padding:20px;'>Bu tarihte yapılan ders yok.</p>";
   }
 
   function renderStT() {
-    const filtered = slots.filter(s => s.isoTarih === selProg);
-    stList.innerHTML = filtered.length ? filtered.map(s => {
-      const isCancelled = s.ogrenci.includes("İPTAL");
-      const isTaken = s.ogrenci !== "" && !isCancelled;
-      const isMine = s.ogrenci.includes(user.name) && !isCancelled;
+    const filtered = sortByTime(getFilteredSlots().filter(s => s.isoTarih === selProg));
+    document.getElementById('stList').innerHTML = filtered.length ? filtered.map(s => {
+      const isC = s.ogrenci.includes("İPTAL");
+      const isT = s.ogrenci !== "" && !isC;
+      const isMine = s.ogrenci.includes(user.name) && !isC;
       const past = checkT(s.tarih, s.saat);
-      let statusHtml = "";
-      if (isMine) statusHtml = `<span style="color:var(--p); font-weight:bold; font-size:11px;">DOLU (Senin Dersin)</span>`;
-      else if (isTaken) statusHtml = `<span style="color:#94a3b8">DOLU</span>`;
-      else if (past) statusHtml = `<span style="color:var(--c)">GEÇTİ</span>`;
-      else statusHtml = `<button class="btn-act" style="background:var(--s)" onclick="book(${s.row})">Al</button>`;
-      return `<div class="slot"><span><b>${s.saat}</b></span>${statusHtml}</div>`;
-    }).join('') : "<p style='text-align:center'>Ders yok.</p>";
+      let html = isMine ? `<span style="color:var(--p); font-weight:bold; font-size:11px;">DOLU (Senin)</span>` : (isT ? `<span style="color:#94a3b8">DOLU</span>` : (past ? `<span style="color:var(--c)">GEÇTİ</span>` : `<button class="btn-act" style="background:var(--s)" onclick="book(${s.row})">Al</button>`));
+      return `<div class="slot"><span><b>${s.saat}</b></span>${html}</div>`;
+    }).join('') : "<p style='text-align:center; padding:20px;'>Ders yok.</p>";
   }
 
   function renderStM() {
-    const my = slots.filter(s => s.ogrenci.includes(user.name));
-    my.sort((a,b) => b.isoTarih.localeCompare(a.isoTarih));
-    stReport.innerHTML = my.map(s => {
+    const my = sortByStatusAndDate(slots.filter(s => s.ogrenci.includes(user.name)));
+    document.getElementById('stReport').innerHTML = my.map(s => {
       const isC = s.ogrenci.includes("İPTAL");
+      const isDone = s.durum === "TAMAMLANDI";
       const past = checkT(s.tarih, s.saat);
-      const match = s.ogrenci.match(/\((.*?)\)/);
-      return `<div class="slot ${past || isC ? 'slot-past' : 'slot-active'}"><div><b>${s.tarih} ${getDayName(s.tarih)} - ${s.saat}</b><span class="ts">${isC && match ? 'İptal Edildi (' + match[1] + ')' : s.islem_saati}</span></div>${!isC && !past ? `<button class="btn-act" style="background:var(--c)" onclick="cancel(${s.row})">İptal</button>` : (isC ? `<span class="badge b-red">İPTAL</span>` : `<span class="badge b-green">BİTTİ</span>`)}</div>`;
-    }).join('');
+      const gun = getDayName(s.tarih);
+      let badge = isC ? `<span class="badge b-red">İPTAL</span>` : (isDone || past ? `<span class="badge b-green">BİTTİ</span>` : `<button class="btn-act" style="background:var(--c)" onclick="cancel(${s.row})">İptal</button>`);
+      return `<div class="slot ${past || isC ? 'slot-past' : 'slot-active'}"><div><b>${s.tarih} ${gun} - ${s.saat}</b></div>${badge}</div>`;
+    }).join('') || "<p style='text-align:center; padding:20px;'>Dersiniz bulunmuyor.</p>";
   }
 
   function renderL() { 
     const logs = (user.log || "").split("\n").filter(l => l.trim() !== "");
-    logContent.innerHTML = logs.map(l => `<div class="log-item">${l}</div>`).join('') || "<p style='text-align:center'>Hareket yok.</p>"; 
+    document.getElementById('logContent').innerHTML = logs.map(l => `<div class="log-item">${l}</div>`).join('') || "<p style='text-align:center; padding:20px;'>Hareket yok.</p>"; 
+  }
+
+  async function addSlot() {
+    if(user.role === 'super_admin') return;
+    const time = prompt("Saat (Örn: 18.00-19.00):");
+    if(!time) return;
+    const [y, a, g] = selProg.split("-");
+    const res = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"addSlot", date: `${g}.${a}.${y}`, time, hoca: user.name})});
+    const d = await res.json(); alert(d.msg); load();
+  }
+
+  async function deleteSlot(row) {
+    if(!confirm("Silmek istiyor musunuz?")) return;
+    const res = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"deleteSlot", row})});
+    const d = await res.json(); alert(d.msg); if(d.success) load();
+  }
+
+  async function adminBook(row) {
+    const name = prompt("Öğrenci Adı:");
+    if(!name) return;
+    const res = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"adminBook", row, studentName: name, adminUser: currentHocaFilter})});
+    const d = await res.json(); alert(d.msg); load();
   }
 
   async function book(row) {
-    const r = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"book", row, user: user.name})});
-    const d = await r.json(); alert(d.msg); if(d.success) await load();
+    const res = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"book", row, user: user.name, sorumlu_hoca: user.sorumlu_hoca})});
+    const d = await res.json(); alert(d.msg); load();
   }
 
   async function cancel(row) {
-    const slot = slots.find(s => s.row === row);
-    const [h, m] = slot.saat.split("-")[0].split(".").map(Number);
-    const [g, ay, y] = slot.tarih.split(".").map(Number);
-    const diff = (new Date(y, ay-1, g, h, m, 0) - new Date()) / 3600000;
-    if (user.role !== 'admin' && diff < 24 && !confirm("DİKKAT: Dersinize 24 saatten az kaldı! İptal ederseniz iade yapılmaz. Onay?")) return;
-    const r = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"cancel", row, role: user.role, user: user.name})});
-    const d = await r.json(); alert(d.msg); if(d.success) await load();
+    if(!confirm("İptal edilsin mi?")) return;
+    const res = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"cancel", row, role: user.role})});
+    const d = await res.json(); alert(d.msg); load();
   }
+
+  function adInit() { 
+    flatpickr("#adPick", { inline: true, locale: "tr", firstDayOfWeek: 1, onChange: (d, s) => { selProg = s; document.getElementById('addArea').style.display = user.role==='super_admin'?'none':'flex'; document.getElementById('selDateLabel').innerText = s; renderAdP(); } });
+    flatpickr("#donePick", { inline: true, locale: "tr", firstDayOfWeek: 1, onChange: (d, s) => { selDone = s; renderDone(); } });
+    load();
+  }
+  function stInit() { flatpickr("#stPick", { inline: true, locale: "tr", firstDayOfWeek: 1, minDate: "today", onChange: (d, s) => { selProg = s; renderStT(); } }); load(); }
+  function stSwitch(t) { document.getElementById('stViewT').style.display=t==='take'?'block':'none'; document.getElementById('stViewM').style.display=t==='my'?'block':'none'; document.getElementById('stViewL').style.display=t==='logs'?'block':'none'; document.getElementById('stTabT').className=t==='take'?'active':''; document.getElementById('stTabM').className=t==='my'?'active':''; document.getElementById('stTabL').className=t==='logs'?'active':''; renderAll(); }
+  function adSwitch(t) { document.getElementById('adViewP').style.display=t==='prog'?'block':'none'; document.getElementById('adViewH').style.display=t==='hist'?'block':'none'; document.getElementById('adViewD').style.display=t==='done'?'block':'none'; document.getElementById('adTabP').className=t==='prog'?'active':''; document.getElementById('adTabH').className=t==='hist'?'active':''; document.getElementById('adTabD').className=t==='done'?'active':''; renderAll(); }
+  function checkT(t, s) { const parts = t.split("."); const d = new Date(parts[2], parts[1]-1, parts[0], s.split("-")[0].split(".")[0], 0); return d <= new Date(); }
+  function updateUI() { document.getElementById('stH').innerText = "Hak: " + user.hak; }
+  function logout() { localStorage.removeItem('lessonSystemUser'); location.reload(); }
+  function getDayName(t) { const p = t.split("."); return G_ISIM[new Date(p[2], p[1]-1, p[0]).getDay()]; }
+  function startLiveUpdate() { clearInterval(refreshTimer); refreshTimer = setInterval(load, 30000); }
 </script>
 </body>
 </html>
