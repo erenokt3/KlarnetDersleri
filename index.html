@@ -18,7 +18,8 @@
     .b-red { background: #fee2e2; color: #b91c1c; }
     .b-green { background: #dcfce7; color: #15803d; }
     .b-blue { background: #dbeafe; color: #1e40af; }
-    input, select { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; outline: none; font-size: 15px; }
+    /* YENİ: textarea eklendi, font ailesi sabitlendi */
+    input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; outline: none; font-size: 15px; font-family: inherit; }
     button.btn-act { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 12px; }
     .btn-sil { background: #fee2e2; color: var(--c); border: 1px solid #fecaca; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 10px; }
     .flatpickr-calendar.inline { margin: 0 auto; box-shadow: none !important; border: 1px solid #e2e8f0; }
@@ -50,6 +51,19 @@
   <center><button onclick="hideLogin()" style="background:none; border:none; color:#64748b; cursor:pointer; margin-top:15px; text-decoration:underline;">Geri Dön</button></center>
 </div>
 
+<div class="card" id="studentBox" style="display:none;">
+  <div class="status-bar" id="stStatus"></div>
+  <div class="nav">
+    <button id="stTabT" onclick="stSwitch('take')">Ders Al</button>
+    <button onclick="stSwitch('my')">Derslerim</button>
+    <button onclick="stSwitch('logs')">Haklarım</button>
+  </div>
+  <div id="stViewT" style="display:none;"><input type="text" id="stPick"><div id="stList" style="margin-top:10px;"></div></div>
+  <div id="stViewM" style="display:none;"><div id="stReport" style="margin-top:10px;"></div></div>
+  <div id="stViewL" style="display:none;"><div id="logContent" style="margin-top:10px;"></div></div>
+  <button onclick="logout()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#94a3b8; color:white; border-radius:10px;">Çıkış</button>
+</div>
+
 <div class="card" id="adminBox" style="display:none;">
   <div class="status-bar" id="adStatus"></div>
   <select id="hSelect" style="display:none; border:2px solid var(--p); font-weight:bold; color:var(--p); width:100%; padding:10px; border-radius:10px; margin-bottom:15px;" onchange="renderAll()"></select>
@@ -62,12 +76,9 @@
   
   <div id="adViewP" style="display:none;">
     <input type="text" id="adPick">
-    <div id="addArea" style="display:none; margin-top:10px;">
-      <button onclick="openTimeModal()" class="btn-act" style="background:var(--p); width:100%; padding:12px;">+ Yeni Ders Saati Ekle</button>
-    </div>
+    <div id="addArea" style="display:none; margin-top:10px;"><button onclick="openTimeModal()" class="btn-act" style="background:var(--p); width:100%; padding:12px;">+ Yeni Ders Saati Ekle</button></div>
     <div id="adList" style="margin-top:10px;"></div>
   </div>
-  
   <div id="adViewH" style="display:none;"><div id="adReport"></div></div>
   <div id="adViewD" style="display:none;"><input type="text" id="donePick"><div id="doneList"></div></div>
   
@@ -77,6 +88,22 @@
   </div>
 
   <button onclick="logout()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#64748b; color:white; border-radius:10px; cursor:pointer;">Güvenli Çıkış</button>
+</div>
+
+<div id="noteModal" class="modal">
+  <div class="modal-content">
+    <h3 style="text-align:center; color:var(--p); margin-top:0;">Ders Hakkında</h3>
+    
+    <label style="font-size:13px; font-weight:bold; color:#64748b;">İşlenen Konu:</label>
+    <textarea id="nKonu" rows="4" placeholder="Örn: 1. Pozisyon Egzersizleri&#10;Sağ el tutuş tekniği" style="margin-top:5px; margin-bottom:15px; resize:vertical;"></textarea>
+    
+    <label style="font-size:13px; font-weight:bold; color:#64748b;">Atılacak Video:</label>
+    <textarea id="nVideo" rows="3" placeholder="Örn: Egzersiz_1.mp4&#10;https://youtu.be/..." style="margin-top:5px; margin-bottom:15px; resize:vertical;"></textarea>
+    
+    <input type="hidden" id="nRow">
+    <button onclick="saveNoteBtn()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Kaydet</button>
+    <button onclick="closeNoteModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b; font-weight:bold;">İptal</button>
+  </div>
 </div>
 
 <div id="timeModal" class="modal">
@@ -102,8 +129,8 @@
   </div>
 </div>
 
-<div id="passM" class="modal">
-  <div class="modal-content">
+<div id="passM" class="modal" style="display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+  <div class="modal-content" style="background:white; padding:20px; border-radius:20px; width:90%; max-width:400px;">
     <h3 style="text-align:center;">Şifre Belirle</h3>
     <input id="rU" type="text" placeholder="Kullanıcı Adınız">
     <input id="rE" type="password" placeholder="Eski Şifre">
@@ -118,7 +145,7 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDwig-U9dWwt26tt-CmuA_juETuqB2SaMNqoqBLehG6W_0PQcYUR8v2xXmO2mEwEeIyw/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzP-Zu7lDlQrzVBcQnRF3IKvLvLEKvi2fxleeN6WoQMrsPlKyvWSajElyRzTOlb7TcbxQ/exec";
   let user = null, slots = [], admins = [], students = [];
   let selProg = "", selDone = "", currentHocaFilter = "", selPublicProg = "";
   let refreshTimer;
@@ -146,26 +173,17 @@
       document.getElementById('adminBox').style.display = "block"; 
       document.getElementById('adStatus').innerHTML = `<span>${user.name}</span><b>${user.role === 'super_admin' ? 'SUPER HOCA' : 'HOCA'}</b>`; 
       if(user.role === 'super_admin') document.getElementById('hSelect').style.display = "block";
-      adInit(); 
-      adSwitch('prog'); 
+      adInit(); adSwitch('prog'); 
     } 
     else { 
       document.getElementById('publicBox').style.display = "block"; 
       publicInit(); 
     }
-    load(); 
-    startLiveUpdate();
+    load(); startLiveUpdate();
   }
 
-  function showLogin() { 
-    document.getElementById('publicBox').style.display = "none"; 
-    document.getElementById('loginBox').style.display = "block"; 
-  }
-  
-  function hideLogin() { 
-    document.getElementById('loginBox').style.display = "none"; 
-    document.getElementById('publicBox').style.display = "block"; 
-  }
+  function showLogin() { document.getElementById('publicBox').style.display = "none"; document.getElementById('loginBox').style.display = "block"; }
+  function hideLogin() { document.getElementById('loginBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; }
 
   async function login() {
     const res = await fetch(`${SCRIPT_URL}?action=login&user=${document.getElementById('u').value}&pass=${document.getElementById('p').value}`, {method:'POST'});
@@ -173,8 +191,7 @@
     if(d.success) { 
         if (d.role === 'admin' || d.role === 'super_admin') {
             user = d; user.name = document.getElementById('u').value; user.pass = document.getElementById('p').value; 
-            localStorage.setItem('lessonSystemUser', JSON.stringify(user)); 
-            initP(); 
+            localStorage.setItem('lessonSystemUser', JSON.stringify(user)); initP(); 
         } else { alert("Sadece hocalar giriş yapabilir!"); }
     } else { alert(d.msg); }
   }
@@ -213,8 +230,6 @@
   function renderPublic() {
     const hoca = document.getElementById('publicHSelect').value || admins[0] || "";
     let f = slots.filter(s => s.hoca === hoca && s.isoTarih === selPublicProg);
-    
-    // Geçmişi ve Bitenleri Filtrele
     f = f.filter(s => !(checkT(s.tarih, s.saat) || s.durum === "TAMAMLANDI"));
     f = sortByTime(f);
     
@@ -262,7 +277,6 @@
 
   function renderAdH() {
     const h = slots.filter(s => s.hoca === currentHocaFilter && s.ogrenci !== "");
-    
     const active = h.filter(s => !(checkT(s.tarih, s.saat) || s.ogrenci.includes("İPTAL") || s.durum === "TAMAMLANDI"));
     const past = h.filter(s => checkT(s.tarih, s.saat) || s.ogrenci.includes("İPTAL") || s.durum === "TAMAMLANDI");
 
@@ -279,9 +293,19 @@
   }
 
   function renderDone() {
-    const d = slots.filter(s => s.hoca === currentHocaFilter && s.durum === "TAMAMLANDI" && s.isoTarih === selDone);
-    const sorted = d.sort((a,b) => (b.tarih.split('.').reverse().join('')+b.saat).localeCompare(a.tarih.split('.').reverse().join('')+a.saat));
-    document.getElementById('doneList').innerHTML = sorted.map(s => `<div class="slot slot-past" style="border-left:5px solid var(--s)"><b>${s.saat}</b><span>${s.ogrenci.split(" (")[0]}</span></div>`).join('') || "<p style='text-align:center;'>Kayıt yok.</p>";
+    const d = sortByTime(slots.filter(s => s.hoca === currentHocaFilter && s.durum === "TAMAMLANDI" && s.isoTarih === selDone));
+    document.getElementById('doneList').innerHTML = d.map(s => {
+      const btnText = (s.konu || s.video) ? "Notları Gör / Düzenle" : "+ Ders Notu Ekle";
+      const btnColor = (s.konu || s.video) ? "var(--p)" : "#64748b";
+      return `
+        <div class="slot slot-past" style="border-left:5px solid var(--s); display:flex; flex-direction:column; align-items:stretch; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div><b>${s.saat}</b><br><span>${s.ogrenci.split(" (")[0]}</span></div>
+            <span class="badge b-green">TAMAMLANDI</span>
+          </div>
+          <button onclick="openNoteModal(${s.row}, '${encodeURIComponent(s.konu)}', '${encodeURIComponent(s.video)}')" class="btn-act" style="background:${btnColor}; font-size:11px; padding:6px; width:100%;">${btnText}</button>
+        </div>`;
+    }).join('') || "<p style='text-align:center;'>Kayıt yok.</p>";
   }
 
   function renderOgrList() {
@@ -329,12 +353,30 @@
       document.getElementById('tempRow').value = row; document.getElementById('ogrModal').style.display = "flex";
   }
   function closeOgrModal() { document.getElementById('ogrModal').style.display = "none"; }
+  
   async function confirmOgr() {
       const n = document.getElementById('ogrSelect').value; const row = document.getElementById('tempRow').value;
       if(!n) return alert("Öğrenci seçin!");
       closeOgrModal();
       const res = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"adminBook", row: row, studentName: n, adminUser: currentHocaFilter})}); 
       const d = await res.json(); alert(d.msg); load();
+  }
+
+  // YENİ NOT MODALI KONTROLLERİ
+  function openNoteModal(row, encKonu, encVideo) {
+    document.getElementById('nRow').value = row;
+    document.getElementById('nKonu').value = encKonu !== 'undefined' ? decodeURIComponent(encKonu) : "";
+    document.getElementById('nVideo').value = encVideo !== 'undefined' ? decodeURIComponent(encVideo) : "";
+    document.getElementById('noteModal').style.display = "flex";
+  }
+  function closeNoteModal() { document.getElementById('noteModal').style.display = "none"; }
+  async function saveNoteBtn() {
+    const row = document.getElementById('nRow').value;
+    const konu = document.getElementById('nKonu').value;
+    const video = document.getElementById('nVideo').value;
+    closeNoteModal();
+    const res = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"saveNote", row: row, konu: konu, video: video})});
+    const d = await res.json(); alert(d.msg); load();
   }
 
   async function addHakBtn(ogrName) {
@@ -346,6 +388,13 @@
   }
 
   async function sil(row) { if(confirm("Silinsin mi?")) { await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"deleteSlot", row})}); load(); } }
+  function stSwitch(t) {
+    document.getElementById('stViewT').style.display = t==='take'?'block':'none';
+    document.getElementById('stViewM').style.display = t==='my'?'block':'none';
+    document.getElementById('stViewL').style.display = t==='logs'?'block':'none';
+    document.getElementById('stTabT').className = t==='take'?'active':'';
+    const b = document.querySelectorAll('.card#studentBox .nav button'); b[1].className = t==='my'?'active':''; b[2].className = t==='logs'?'active':''; renderAll();
+  }
   function openM() { document.getElementById('passM').style.display="flex"; }
   function closeM() { document.getElementById('passM').style.display="none"; }
   async function setPass() { await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"setPassword", username:rU.value, newPass:rP1.value, eskiSifreDogrulama:rE.value})}); closeM(); }
