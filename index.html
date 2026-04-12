@@ -29,9 +29,9 @@
 </head>
 <body>
 
-<div id="loader">İşleniyor... Lütfen bekleyin.</div>
+<div id="loader">İşleniyor...</div>
 
-<div class="card" id="publicBox" style="display:none;">
+<div class="card" id="publicBox">
   <div style="text-align:center; margin-bottom:20px;">
     <h1 style="margin:0; font-size:24px; color:var(--p); font-weight:800;">EREN OKAT</h1>
     <p style="margin:5px 0; color:#64748b; font-weight:500;">Ders Programı</p>
@@ -43,19 +43,17 @@
 
 <div class="card" id="loginBox" style="display:none;">
   <div style="text-align:center; margin-bottom:30px;">
-    <h1 style="margin:0; font-size:24px; color:var(--p); font-weight:800;">EREN OKAT</h1>
-    <p style="margin:5px 0; color:#64748b; font-weight:500;">Yönetim Paneli</p>
+    <h1 style="margin:0; font-size:24px; color:var(--p); font-weight:800;">GÜVENLİ GİRİŞ</h1>
   </div>
-  <input id="u" type="text" placeholder="Kullanıcı Adı">
+  <input id="u" type="email" placeholder="E-posta Adresi">
   <input id="p" type="password" placeholder="Şifre">
-  <button onclick="login()" style="width:100%; padding:16px; background:var(--p); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:10px; cursor:pointer;">Giriş Yap</button>
+  <button onclick="loginAuth()" style="width:100%; padding:16px; background:var(--p); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:10px; cursor:pointer;">Giriş Yap</button>
   <center><button onclick="hideLogin()" style="background:none; border:none; color:#64748b; cursor:pointer; margin-top:15px; text-decoration:underline;">Geri Dön</button></center>
 </div>
 
 <div class="card" id="adminBox" style="display:none;">
   <div class="status-bar" id="adStatus"></div>
   <select id="hSelect" style="display:none; border:2px solid var(--p); font-weight:bold; color:var(--p); width:100%; padding:10px; border-radius:10px; margin-bottom:15px;" onchange="renderAll()"></select>
-  
   <div class="nav">
     <button id="adTabP" onclick="adSwitch('prog')">Program</button>
     <button onclick="adSwitch('hist')">Geçmiş</button>
@@ -63,86 +61,17 @@
     <button onclick="adSwitch('hak')">Hak Ekle</button>
     <button id="btnKullaniciEkle" onclick="openUserModal()" style="display:none; background:var(--p); color:white; flex: 100%; margin-top:5px; font-weight:bold;">+ Yeni Kullanıcı Ekle</button>
   </div>
-  
-  <div id="adViewP" style="display:none;">
-    <input type="text" id="adPick">
-    <div id="addArea" style="display:none; margin-top:10px;"><button onclick="openTimeModal()" class="btn-act" style="background:var(--p); width:100%; padding:12px;">+ Yeni Ders Saati Ekle</button></div>
-    <div id="adList" style="margin-top:10px;"></div>
-  </div>
-  
+  <div id="adViewP" style="display:none;"><input type="text" id="adPick"><div id="addArea" style="display:none; margin-top:10px;"><button onclick="openTimeModal()" class="btn-act" style="background:var(--p); width:100%; padding:12px;">+ Yeni Ders Saati Ekle</button></div><div id="adList" style="margin-top:10px;"></div></div>
   <div id="adViewH" style="display:none;"><div id="adReport"></div></div>
   <div id="adViewD" style="display:none;"><input type="text" id="donePick"><div id="doneList"></div></div>
-  
-  <div id="adViewHak" style="display:none;">
-    <input type="text" id="ogrSearch" placeholder="Öğrenci Ara..." onkeyup="renderOgrList()" style="margin-bottom:10px; border:1px solid var(--p);">
-    <div id="ogrList" style="max-height: 400px; overflow-y: auto;"></div>
-  </div>
-
-  <button onclick="logout()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#64748b; color:white; border-radius:10px; cursor:pointer;">Güvenli Çıkış</button>
+  <div id="adViewHak" style="display:none;"><input type="text" id="ogrSearch" placeholder="Öğrenci Ara..." onkeyup="renderOgrList()"><div id="ogrList" style="max-height: 400px; overflow-y: auto;"></div></div>
+  <button onclick="logoutAuth()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#64748b; color:white; border-radius:10px; cursor:pointer;">Sistemden Çıkış Yap</button>
 </div>
 
-<div id="noteModal" class="modal">
-  <div class="modal-content">
-    <h3 style="text-align:center; color:var(--p); margin-top:0;">Ders Hakkında</h3>
-    <label style="font-size:13px; font-weight:bold; color:#64748b;">İşlenen Konu:</label>
-    <textarea id="nKonu" rows="4" placeholder="Örn: 1. Pozisyon Egzersizleri" style="margin-top:5px; margin-bottom:15px; resize:vertical;"></textarea>
-    <label style="font-size:13px; font-weight:bold; color:#64748b;">Atılacak Video:</label>
-    <textarea id="nVideo" rows="3" placeholder="Örn: Egzersiz_1.mp4" style="margin-top:5px; margin-bottom:15px; resize:vertical;"></textarea>
-    <input type="hidden" id="nRow">
-    <button onclick="saveNoteBtn()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Kaydet</button>
-    <button onclick="closeNoteModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b; font-weight:bold;">İptal</button>
-  </div>
-</div>
-
-<div id="timeModal" class="modal">
-  <div class="modal-content">
-    <h3 style="text-align:center; color:var(--p); margin-top:0;">Ders Saati Belirle</h3>
-    <div style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:15px;">
-      <input type="time" id="tS" style="flex:1; text-align:center; padding:12px; font-weight:bold;"> 
-      <span style="font-weight:bold; color:#64748b;">-</span> 
-      <input type="time" id="tE" style="flex:1; text-align:center; padding:12px; font-weight:bold;">
-    </div>
-    <button onclick="confirmTime()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Kaydet ve Ekle</button>
-    <button onclick="closeTimeModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b; font-weight:bold;">Vazgeç</button>
-  </div>
-</div>
-
-<div id="ogrModal" class="modal">
-  <div class="modal-content">
-    <h3 style="text-align:center; color:var(--p); margin-top:0;">Öğrenci Seç</h3>
-    <select id="ogrSelect" style="width:100%; padding:14px; margin-bottom:15px; border-radius:10px; border:1px solid #e2e8f0;"></select>
-    <input type="hidden" id="tempRow">
-    <button onclick="confirmOgr()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Öğrenciyi Derse Yaz</button>
-    <button onclick="closeOgrModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b; font-weight:bold;">İptal</button>
-  </div>
-</div>
-
-<div id="userModal" class="modal">
-  <div class="modal-content">
-    <h3 style="text-align:center; color:var(--p); margin-top:0;">Yeni Kullanıcı Ekle</h3>
-    
-    <label style="font-size:12px; font-weight:bold; color:#64748b;">Kullanıcı Rolü:</label>
-    <select id="newURole" onchange="window.toggleUserFields()" style="margin-bottom:10px;">
-      <option value="student">Öğrenci</option>
-      <option value="admin">Hoca (Admin)</option>
-      <option value="super_admin">Süper Admin</option>
-    </select>
-
-    <input id="newUName" type="text" placeholder="Giriş Adı / Ad Soyad" style="margin-bottom:10px;">
-    
-    <div id="passGroup" style="display:none;">
-      <input id="newUPass" type="text" placeholder="Şifre Belirleyin" style="margin-bottom:10px;">
-    </div>
-    
-    <div id="studentGroup">
-      <input id="newUHak" type="number" placeholder="Başlangıç Ders Hakkı" value="0" style="margin-bottom:10px;">
-      <select id="newUHoca" style="margin-bottom:10px;"></select>
-    </div>
-    
-    <button onclick="saveNewUser()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px;">Kullanıcıyı Kaydet</button>
-    <button onclick="closeUserModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b; font-weight:bold;">İptal</button>
-  </div>
-</div>
+<div id="noteModal" class="modal"><div class="modal-content"><h3 style="text-align:center; color:var(--p); margin-top:0;">Ders Hakkında</h3><label style="font-size:13px; font-weight:bold; color:#64748b;">İşlenen Konu:</label><textarea id="nKonu" rows="4" style="margin-top:5px; margin-bottom:15px;"></textarea><label style="font-size:13px; font-weight:bold; color:#64748b;">Atılacak Video:</label><textarea id="nVideo" rows="3" style="margin-top:5px; margin-bottom:15px;"></textarea><input type="hidden" id="nRow"><button onclick="saveNoteBtn()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold;">Kaydet</button><button onclick="closeNoteModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b;">İptal</button></div></div>
+<div id="timeModal" class="modal"><div class="modal-content"><h3 style="text-align:center;">Ders Saati Belirle</h3><div style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:15px;"><input type="time" id="tS" style="flex:1; padding:12px; font-weight:bold;"> - <input type="time" id="tE" style="flex:1; padding:12px; font-weight:bold;"></div><button onclick="confirmTime()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px;">Kaydet ve Ekle</button><button onclick="closeTimeModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Vazgeç</button></div></div>
+<div id="ogrModal" class="modal"><div class="modal-content"><h3>Öğrenci Seç</h3><select id="ogrSelect" style="width:100%; padding:14px; margin-bottom:15px; border-radius:10px;"></select><input type="hidden" id="tempRow"><button onclick="confirmOgr()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px;">Öğrenciyi Yaz</button><button onclick="closeOgrModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">İptal</button></div></div>
+<div id="userModal" class="modal"><div class="modal-content"><h3>Yeni Kullanıcı Ekle</h3><select id="newURole" onchange="window.toggleUserFields()"><option value="student">Öğrenci</option><option value="admin">Hoca (Admin)</option><option value="super_admin">Süper Admin</option></select><input id="newUName" type="text" placeholder="Giriş Adı / E-posta"><div id="passGroup" style="display:none;"><input id="newUPass" type="text" placeholder="Şifre (Min 6 hane)"></div><div id="studentGroup"><input id="newUHak" type="number" placeholder="Ders Hakkı" value="0"><select id="newUHoca"></select></div><button onclick="saveNewUser()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; margin-top:10px;">Kaydet</button><button onclick="closeUserModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">İptal</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
@@ -150,6 +79,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAN-T2_6KFAmvQYkaWvO4Oue8FKpYF_IJk",
@@ -162,208 +92,109 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth(app);
+  const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+  const secondaryAuth = getAuth(secondaryApp);
 
   let user = null, slots = [], admins = [], students = [];
   let selProg = "", selDone = "", currentHocaFilter = "", selPublicProg = "";
-  let refreshTimer;
 
   const G_ISIM = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
   window.getDayName = function(t) { const p = t.split("."); return G_ISIM[new Date(p[2], p[1]-1, p[0]).getDay()]; }
-  window.getDObj = function(t, s) { const p = t.split("."); const hm = s.split("-")[0].split(/[.:]/); return new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0, 0); }
-  window.getHoursDiff = function(t, s) { return (window.getDObj(t, s) - new Date()) / (1000 * 60 * 60); }
-  window.checkT = function(t, s) { return window.getDObj(t, s) <= new Date(); }
+  window.checkT = function(t, s) { const p = t.split("."); const hm = s.split("-")[0].split(/[.:]/); return new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0) <= new Date(); }
   window.sortByTime = function(arr) { return arr.sort((a, b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat)); }
-  function loading(show) { document.getElementById('loader').style.display = show ? 'block' : 'none'; }
-  function getSuan() { 
-      const d = new Date(); 
-      return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`; 
-  }
+  function loading(s) { document.getElementById('loader').style.display = s ? 'block' : 'none'; }
+  function getSuan() { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
-  window.onload = function() { 
-    const saved = localStorage.getItem('lessonSystemUser'); 
-    if (saved) { user = JSON.parse(saved); }
-    window.initP(); 
-  };
-
-  window.initP = function() {
-    document.getElementById('loginBox').style.display = "none";
-    document.getElementById('publicBox').style.display = "none";
-    document.getElementById('adminBox').style.display = "none";
-
-    if(user && (user.role === 'admin' || user.role === 'super_admin')) { 
-      document.getElementById('adminBox').style.display = "block"; 
-      document.getElementById('adStatus').innerHTML = `<span>${user.name}</span><b>${user.role === 'super_admin' ? 'SUPER HOCA' : 'HOCA'}</b>`; 
-      
-      if(user.role === 'super_admin') {
-        document.getElementById('hSelect').style.display = "block";
-        document.getElementById('btnKullaniciEkle').style.display = "block";
-      } else {
-        document.getElementById('hSelect').style.display = "none";
-        document.getElementById('btnKullaniciEkle').style.display = "none";
+  onAuthStateChanged(auth, async (fbUser) => {
+    if (fbUser) {
+      const uDoc = await getDoc(doc(db, "users", fbUser.email));
+      if (uDoc.exists()) {
+        user = { name: fbUser.email, role: uDoc.data().role };
+        document.getElementById('publicBox').style.display = "none";
+        document.getElementById('loginBox').style.display = "none";
+        document.getElementById('adminBox').style.display = "block";
+        document.getElementById('adStatus').innerHTML = `<span>${user.name.split("@")[0].toUpperCase()}</span><b>${user.role.toUpperCase()}</b>`;
+        if(user.role === 'super_admin') { document.getElementById('hSelect').style.display = "block"; document.getElementById('btnKullaniciEkle').style.display = "block"; }
+        window.adInit(); window.adSwitch('prog');
       }
-
-      window.adInit(); window.adSwitch('prog'); 
-    } 
-    else { 
-      document.getElementById('publicBox').style.display = "block"; 
-      window.publicInit(); 
+    } else {
+      user = null; document.getElementById('adminBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; window.publicInit();
     }
-    window.load(); 
-    clearInterval(refreshTimer);
-    refreshTimer = setInterval(window.load, 30000);
-  }
-
-  window.showLogin = function() { document.getElementById('publicBox').style.display = "none"; document.getElementById('loginBox').style.display = "block"; }
-  window.hideLogin = function() { document.getElementById('loginBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; }
-
-  window.login = async function() {
-    loading(true);
-    const uName = document.getElementById('u').value.trim();
-    const pass = document.getElementById('p').value.trim();
-    try {
-        const uDoc = await getDoc(doc(db, "users", uName));
-        if (uDoc.exists() && uDoc.data().password === pass) {
-            const data = uDoc.data();
-            if(data.role === 'admin' || data.role === 'super_admin') {
-                user = { name: uName, pass: pass, role: data.role, hak: data.hak, log: data.log, sorumlu_hoca: data.sorumlu_hoca };
-                localStorage.setItem('lessonSystemUser', JSON.stringify(user)); 
-                window.initP();
-            } else {
-                alert("Öğrenciler bu panele giriş yapamaz! Sadece yetkili hocalar ve yöneticiler girebilir.");
-            }
-        } else { alert("Hatalı giriş veya kullanıcı bulunamadı!"); }
-    } catch(e) { alert("Bağlantı hatası!"); }
-    loading(false);
-  }
+    window.load();
+  });
 
   window.load = async function() {
     try {
-        const usersSnap = await getDocs(collection(db, "users"));
-        const slotsSnap = await getDocs(collection(db, "slots"));
-        
-        let rawUsers = []; usersSnap.forEach(d => rawUsers.push({ id: d.id, ...d.data() }));
-        
-        // YENİ: ADMİNS LİSTESİNE ARTIK SUPER_ADMIN DAHİL EDİLMİYOR! Sadece 'admin' rolündekiler Hoca sayılır.
-        admins = rawUsers.filter(u => u.role === "admin").map(u => u.id);
-        
-        students = rawUsers.filter(u => u.role === "student").map(u => ({ isim: u.id, hak: u.hak, hoca: u.sorumlu_hoca }));
-
-        const now = new Date();
+        const uSnap = await getDocs(collection(db, "users"));
+        const sSnap = await getDocs(collection(db, "slots"));
+        let rawU = []; uSnap.forEach(d => rawU.push({ id: d.id, ...d.data() }));
+        admins = rawU.filter(u => u.role === "admin").map(u => u.id);
+        students = rawU.filter(u => u.role === "student").map(u => ({ isim: u.id, hak: u.hak, hoca: u.sorumlu_hoca }));
         slots = [];
-        
-        slotsSnap.forEach(d => {
+        sSnap.forEach(d => {
             let r = { id: d.id, ...d.data() };
-            let ogrName = (r.ogrenci || "").split(" (")[0].trim();
-            let foundUser = rawUsers.find(u => u.id === ogrName);
-            
-            if (r.ogrenci && !r.ogrenci.includes("İPTAL") && r.durum !== "TAMAMLANDI") {
-                const p = r.tarih.split("."); const hm = r.saat.split("-")[0].split(/[.:]/);
-                const dObj = new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0, 0);
-                if (dObj <= now) { r.durum = "TAMAMLANDI"; updateDoc(doc(db, "slots", r.id), { durum: "TAMAMLANDI" }); }
-            }
-
-            slots.push({
-                id: r.id, tarih: r.tarih, isoTarih: r.isoTarih, saat: r.saat, ogrenci: r.ogrenci || "",
-                durum: r.durum || "", hoca: r.hoca || "", konu: r.konu || "", video: r.video || "",
-                ogr_hak: foundUser ? foundUser.hak : "0"
-            });
+            let ogr = (r.ogrenci || "").split(" (")[0].trim();
+            let found = rawU.find(u => u.id === ogr);
+            slots.push({ ...r, ogr_hak: found ? found.hak : "0" });
         });
-
-        if (admins.length > 0) {
-            const hSel = document.getElementById('hSelect');
-            if (hSel.options.length === 0) admins.forEach(a => hSel.add(new Option(a + " Programı", a)));
+        if (admins.length > 0 && document.getElementById('hSelect').options.length === 0) {
+            admins.forEach(a => document.getElementById('hSelect').add(new Option(a.split('@')[0].toUpperCase(), a)));
         }
         window.renderAll();
     } catch(e) {}
   }
 
   window.renderAll = function() {
-    if (user && (user.role === 'super_admin' || user.role === 'admin')) {
-        // Süper adminler açılır menüden hocayı seçer, hocalar (adminler) sadece kendisini görür.
-        if(user.role === 'super_admin') currentHocaFilter = document.getElementById('hSelect').value || admins[0]; 
-        else currentHocaFilter = user.name;
-        
+    if (user) {
+        currentHocaFilter = user.role === 'super_admin' ? (document.getElementById('hSelect').value || admins[0]) : user.name;
         window.renderAdP(); window.renderAdH(); window.renderDone(); window.renderOgrList();
-    } else { 
-        window.renderPublic(); 
-    }
+    } else { window.renderPublic(); }
   }
 
-  window.publicInit = function() { 
+  window.publicInit = function() {
     flatpickr.localize(flatpickr.l10ns.tr);
-    flatpickr("#publicPick", { inline: true, locale: "tr", defaultDate: "today", firstDayOfWeek: 1, onChange: (d,s) => { selPublicProg = s; window.renderAll(); } }); 
-    if(!selPublicProg) { const today = new Date(); selPublicProg = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`; }
+    flatpickr("#publicPick", { inline: true, locale: "tr", defaultDate: "today", onChange: (d,s) => { selPublicProg = s; window.renderAll(); } });
+    if(!selPublicProg) { const t = new Date(); selPublicProg = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; }
   }
 
   window.renderPublic = function() {
-    const hoca = "Eren Okat"; 
-    let f = slots.filter(s => s.hoca === hoca && s.isoTarih === selPublicProg);
-    f = f.filter(s => !(window.checkT(s.tarih, s.saat) || s.durum === "TAMAMLANDI"));
-    f = window.sortByTime(f);
-    
+    const hoca = "erenokatt@gmail.com";
+    let f = slots.filter(s => s.hoca === hoca && s.isoTarih === selPublicProg && s.durum !== "TAMAMLANDI").sort((a,b)=>a.saat.localeCompare(b.saat));
     const listDiv = document.getElementById('publicList');
-    if (f.length === 0) { listDiv.innerHTML = "<p style='text-align:center; font-size:16px; font-weight:bold; color:#64748b; padding:20px 0;'>Bu tarihte aktif ders bulunmamakta.</p>"; return; }
-
-    listDiv.innerHTML = f.map(s => {
-      const isTaken = s.ogrenci !== "" && !s.ogrenci.includes("İPTAL");
-      let badge = isTaken ? `<span class="badge b-red">DOLU</span>` : `<span class="badge b-green">BOŞ</span>`;
-      return `<div class="slot"><div><b>${s.saat}</b></div>${badge}</div>`;
-    }).join('');
+    if (f.length === 0) { listDiv.innerHTML = "<p style='text-align:center;'>Ders yok.</p>"; return; }
+    listDiv.innerHTML = f.map(s => `<div class="slot"><b>${s.saat}</b>${s.ogrenci ? `<span class="badge b-red">DOLU</span>` : `<span class="badge b-green">BOŞ</span>`}</div>`).join('');
   }
 
   window.adSwitch = function(t) {
-    document.getElementById('adViewP').style.display = t==='prog'?'block':'none';
-    document.getElementById('adViewH').style.display = t==='hist'?'block':'none';
-    document.getElementById('adViewD').style.display = t==='done'?'block':'none';
-    document.getElementById('adViewHak').style.display = t==='hak'?'block':'none';
-    document.getElementById('adTabP').className = t==='prog'?'active':'';
-    const b = document.querySelectorAll('.card#adminBox .nav button'); 
-    b[1].className = t==='hist'?'active':''; b[2].className = t==='done'?'active':''; b[3].className = t==='hak'?'active':'';
+    ['P','H','D','Hak'].forEach(v => document.getElementById('adView'+v).style.display = 'none');
+    document.getElementById('adView'+(t==='prog'?'P':t==='hist'?'H':t==='done'?'D':'Hak')).style.display = 'block';
     window.renderAll();
-  }
-
-  window.handleCancel = async function(id, tarih, saat) {
-    if (confirm("Dersi iptal etmek istediğinize emin misiniz?")) { 
-        loading(true);
-        const slotRef = doc(db, "slots", id);
-        const sDoc = await getDoc(slotRef);
-        const ogr = (sDoc.data().ogrenci || "").split(" (")[0].trim();
-        const suan = getSuan();
-        
-        await updateDoc(slotRef, { ogrenci: `${ogr} (HOCA İPTALİ) - ${suan}` });
-        
-        const uRef = doc(db, "users", ogr);
-        const uDoc = await getDoc(uRef);
-        if (uDoc.exists()) {
-            let uD = uDoc.data();
-            await updateDoc(uRef, { hak: uD.hak + 1, log: `+1 hak | ${suan} | İptal (Hoca)\n${uD.log||""}` });
-        }
-        await window.load(); loading(false);
-    }
   }
 
   window.renderAdP = function() {
     const f = window.sortByTime(slots.filter(s => s.hoca === currentHocaFilter && s.isoTarih === selProg));
-    const isSuper = user.role === 'super_admin';
     document.getElementById('adList').innerHTML = f.map(s => {
-      const isT = s.ogrenci !== "" && !s.ogrenci.includes("İPTAL");
-      const past = window.checkT(s.tarih, s.saat) || s.durum === "TAMAMLANDI";
-      let btn = "";
-      if (isSuper && user.name !== currentHocaFilter) btn = `<span class="badge b-blue">İZLEME</span>`;
-      else if (past) btn = `<span class="badge b-green">BİTTİ</span>`;
-      else if (isT && !past) btn = `<button onclick="handleCancel('${s.id}','${s.tarih}','${s.saat}')" class="btn-act" style="background:var(--c)">İptal</button>`;
-      else if (!isT && !past) btn = `<div style="display:flex; gap:5px;"><button onclick="sil('${s.id}')" class="btn-sil">Sil</button><button onclick="openOgrModal('${s.id}')" class="btn-act" style="background:var(--s)">Ekle</button></div>`;
-      return `<div class="slot ${past?'slot-past':''}"><div><b>${s.saat}</b><br><small>${s.ogrenci || 'BOŞ'}</small></div>${btn}</div>`;
+      let btn = s.durum === "TAMAMLANDI" ? `<span class="badge b-green">BİTTİ</span>` : (s.ogrenci ? `<button onclick="handleCancel('${s.id}')" class="btn-act" style="background:var(--c)">İptal</button>` : `<div style="display:flex; gap:5px;"><button onclick="sil('${s.id}')" class="btn-sil">Sil</button><button onclick="openOgrModal('${s.id}')" class="btn-act" style="background:var(--s)">Ekle</button></div>`);
+      return `<div class="slot"><div><b>${s.saat}</b><br><small>${s.ogrenci || 'BOŞ'}</small></div>${btn}</div>`;
     }).join('');
   }
 
+  // --- MÜKEMMEL GEÇMİŞ (HISTORY) SIRALAMASI ---
   window.renderAdH = function() {
     const h = slots.filter(s => s.hoca === currentHocaFilter && s.ogrenci !== "");
+    
+    // Aktif olanlar ve Bitmiş olanları ayırıyoruz
     const active = h.filter(s => !(window.checkT(s.tarih, s.saat) || s.ogrenci.includes("İPTAL") || s.durum === "TAMAMLANDI"));
     const past = h.filter(s => window.checkT(s.tarih, s.saat) || s.ogrenci.includes("İPTAL") || s.durum === "TAMAMLANDI");
 
+    // Aktifler: En yakın tarih en üstte (Artan sıralama)
     active.sort((a,b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat));
+    
+    // Bitmişler: En yakın geçmiş en üstte (Azalan sıralama)
     past.sort((a,b) => (b.tarih.split('.').reverse().join('')+b.saat).localeCompare(a.tarih.split('.').reverse().join('')+a.saat));
+
+    // Önce aktifler, sonra bitmişler
     const sorted = [...active, ...past];
 
     document.getElementById('adReport').innerHTML = sorted.map(s => {
@@ -375,181 +206,40 @@
 
   window.renderDone = function() {
     const d = window.sortByTime(slots.filter(s => s.hoca === currentHocaFilter && s.durum === "TAMAMLANDI" && s.isoTarih === selDone));
-    document.getElementById('doneList').innerHTML = d.map(s => {
-      const btnText = (s.konu || s.video) ? "Notları Gör / Düzenle" : "+ Ders Notu Ekle";
-      const btnColor = (s.konu || s.video) ? "var(--p)" : "#64748b";
-      return `
-        <div class="slot slot-past" style="border-left:5px solid var(--s); display:flex; flex-direction:column; align-items:stretch; gap:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div><b>${s.saat}</b><br><span>${s.ogrenci.split(" (")[0]}</span></div>
-            <span class="badge b-green">TAMAMLANDI</span>
-          </div>
-          <button onclick="openNoteModal('${s.id}', '${encodeURIComponent(s.konu)}', '${encodeURIComponent(s.video)}')" class="btn-act" style="background:${btnColor}; font-size:11px; padding:6px; width:100%;">${btnText}</button>
-        </div>`;
-    }).join('') || "<p style='text-align:center;'>Kayıt yok.</p>";
+    document.getElementById('doneList').innerHTML = d.map(s => `
+        <div class="slot slot-past" style="flex-direction:column; align-items:stretch; gap:10px; border-left:5px solid var(--s);">
+          <div style="display:flex; justify-content:space-between;"><div><b>${s.saat}</b> - ${s.ogrenci.split(" (")[0]}</div><span class="badge b-green">BİTTİ</span></div>
+          <button onclick="openNoteModal('${s.id}', '${encodeURIComponent(s.konu||"")}', '${encodeURIComponent(s.video||"")}')" class="btn-act" style="background:var(--p); width:100%;">${(s.konu || s.video) ? "Notları Gör / Düzenle" : "+ Ders Notu Ekle"}</button>
+        </div>`).join('') || "<p style='text-align:center;'>Kayıt yok.</p>";
   }
 
   window.renderOgrList = function() {
-    if (!document.getElementById('adViewHak') || document.getElementById('adViewHak').style.display === 'none') return;
-    const search = document.getElementById('ogrSearch').value.toLowerCase();
-    const listDiv = document.getElementById('ogrList');
-    
-    let ogrs = students.filter(s => s.hoca === currentHocaFilter);
-    if (search) ogrs = ogrs.filter(s => s.isim.toLowerCase().includes(search));
-
-    if (ogrs.length === 0) { listDiv.innerHTML = "<p style='text-align:center; color:#64748b;'>Öğrenci bulunamadı.</p>"; return; }
-
-    listDiv.innerHTML = ogrs.map(s => {
-      return `<div class="slot"><div><b style="color:var(--p);">${s.isim}</b><br><small>Mevcut Hak: <b>${s.hak}</b></small></div><button onclick="addHakBtn('${s.isim}')" class="btn-act" style="background:var(--s)">+ Hak Ekle</button></div>`;
-    }).join('');
+    const s = document.getElementById('ogrSearch').value.toLowerCase();
+    const list = students.filter(x => x.hoca === currentHocaFilter && x.isim.toLowerCase().includes(s));
+    document.getElementById('ogrList').innerHTML = list.map(x => `<div class="slot"><div><b style="color:var(--p);">${x.isim}</b><br><small>Mevcut Hak: <b>${x.hak}</b></small></div><button onclick="addHakBtn('${x.isim}')" class="btn-act" style="background:var(--s)">+ Hak Ekle</button></div>`).join('');
   }
 
-  window.adInit = function() { 
-    flatpickr.localize(flatpickr.l10ns.tr);
-    flatpickr("#adPick", {inline:true, locale:"tr", firstDayOfWeek:1, onChange:(d,s)=>{
-      selProg=s; const pts = s.split("-"); const selD = new Date(pts[0], pts[1]-1, pts[2]); const today = new Date(); today.setHours(0,0,0,0);
-      document.getElementById('addArea').style.display = (selD < today || user.role === 'super_admin') ? 'none' : 'block'; window.renderAll();
-    }}); 
-    flatpickr("#donePick", {inline:true, locale:"tr", firstDayOfWeek:1, onChange:(d,s)=>{selDone=s; window.renderDone();}}); 
-  }
-
-  window.logout = function() { localStorage.removeItem('lessonSystemUser'); user = null; window.initP(); }
-  
-  window.openTimeModal = function() { document.getElementById('tS').value = ""; document.getElementById('tE').value = ""; document.getElementById('timeModal').style.display = "flex"; }
-  window.closeTimeModal = function() { document.getElementById('timeModal').style.display = "none"; }
-  window.confirmTime = async function() {
-      const ts = document.getElementById('tS').value; const te = document.getElementById('tE').value;
-      if(!ts || !te) return alert("Lütfen saat seçin!");
-      const t = ts.replace(':', '.') + "-" + te.replace(':', '.');
-      window.closeTimeModal(); const [y,a,g] = selProg.split("-"); 
-      loading(true);
-      await addDoc(collection(db, "slots"), { tarih: `${g}.${a}.${y}`, isoTarih: selProg, saat: t, ogrenci: "", hoca: currentHocaFilter, durum: "", konu: "", video: "" });
-      await window.load(); loading(false);
-  }
-
-  window.openOgrModal = function(id) {
-      const select = document.getElementById('ogrSelect'); select.innerHTML = '<option value="">-- Seçin --</option>';
-      const hocaOgrs = students.filter(s => s.hoca === currentHocaFilter);
-      if(hocaOgrs.length === 0) return alert("Öğrenci yok.");
-      hocaOgrs.forEach(s => { select.innerHTML += `<option value="${s.isim}">${s.isim} (Hak: ${s.hak})</option>`; });
-      document.getElementById('tempRow').value = id; document.getElementById('ogrModal').style.display = "flex";
-  }
-  window.closeOgrModal = function() { document.getElementById('ogrModal').style.display = "none"; }
-  
-  window.confirmOgr = async function() {
-      const n = document.getElementById('ogrSelect').value; const id = document.getElementById('tempRow').value;
-      if(!n) return alert("Öğrenci seçin!");
-      window.closeOgrModal();
-      loading(true);
-      const uRef = doc(db, "users", n);
-      const uDoc = await getDoc(uRef);
-      if(uDoc.exists()) {
-          const uD = uDoc.data();
-          if(uD.hak <= 0) { alert("HATA: Öğrencinin ders hakkı bitmiş!"); loading(false); return; }
-          const suan = getSuan();
-          await updateDoc(uRef, { hak: uD.hak - 1, log: `-1 hak | ${suan} | Hoca Eklemesi\n${uD.log||""}` });
-          await updateDoc(doc(db, "slots", id), { ogrenci: n });
-          alert("Öğrenci başarıyla eklendi.");
-      }
-      await window.load(); loading(false);
-  }
-
-  window.openNoteModal = function(id, encKonu, encVideo) {
-    document.getElementById('nRow').value = id;
-    document.getElementById('nKonu').value = encKonu !== 'undefined' ? decodeURIComponent(encKonu) : "";
-    document.getElementById('nVideo').value = encVideo !== 'undefined' ? decodeURIComponent(encVideo) : "";
-    document.getElementById('noteModal').style.display = "flex";
-  }
-  window.closeNoteModal = function() { document.getElementById('noteModal').style.display = "none"; }
-  window.saveNoteBtn = async function() {
-    const id = document.getElementById('nRow').value;
-    const konu = document.getElementById('nKonu').value;
-    const video = document.getElementById('nVideo').value;
-    window.closeNoteModal(); loading(true);
-    await updateDoc(doc(db, "slots", id), { konu: konu, video: video });
-    alert("Ders notları kaydedildi!"); await window.load(); loading(false);
-  }
-
-  window.addHakBtn = async function(ogrName) {
-    const m = prompt(`${ogrName} adlı öğrenciye kaç ders hakkı eklenecek?`, "1");
-    if (!m) return; const hak = parseInt(m);
-    if (isNaN(hak) || hak <= 0) return alert("Geçerli bir sayı girin!");
-    loading(true);
-    const uRef = doc(db, "users", ogrName);
-    const uDoc = await getDoc(uRef);
-    if(uDoc.exists()) {
-        const suan = getSuan();
-        await updateDoc(uRef, { hak: uDoc.data().hak + hak, log: `+${hak} hak | ${suan} | Hoca Ekledi\n${uDoc.data().log||""}` });
-        alert(`Öğrenciye ${hak} saat eklendi.`);
-    }
-    await window.load(); loading(false);
-  }
-
+  window.loginAuth = async function() { loading(true); try { await signInWithEmailAndPassword(auth, document.getElementById('u').value.trim(), document.getElementById('p').value.trim()); } catch(e) { alert("Hata: " + e.message); } loading(false); }
+  window.logoutAuth = function() { signOut(auth); }
+  window.showLogin = function() { document.getElementById('publicBox').style.display = "none"; document.getElementById('loginBox').style.display = "block"; }
+  window.hideLogin = function() { document.getElementById('loginBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; }
+  window.handleCancel = async function(id) { if (confirm("İptal edilsin mi?")) { loading(true); const sRef = doc(db, "slots", id); const sD = (await getDoc(sRef)).data(); const ogr = sD.ogrenci.split(" (")[0]; await updateDoc(sRef, { ogrenci: `${ogr} (İPTAL) - ${getSuan()}` }); const uRef = doc(db, "users", ogr); const uD = (await getDoc(uRef)).data(); await updateDoc(uRef, { hak: uD.hak + 1, log: `+1 hak | ${getSuan()} | İptal\n${uD.log||""}` }); await window.load(); loading(false); } }
+  window.addHakBtn = async function(n) { const h = prompt(n + " için kaç hak?"); if(!h) return; loading(true); const uRef = doc(db, "users", n); const d = (await getDoc(uRef)).data(); await updateDoc(uRef, { hak: d.hak + parseInt(h), log: `+${h} hak | ${getSuan()}\n${d.log||""}` }); await window.load(); loading(false); }
   window.sil = async function(id) { if(confirm("Silinsin mi?")) { loading(true); await deleteDoc(doc(db, "slots", id)); await window.load(); loading(false); } }
-
-  // YENİ: DİNAMİK KULLANICI EKLEME KONTROLLERİ
-  window.toggleUserFields = function() {
-      const role = document.getElementById('newURole').value;
-      if (role === 'student') {
-          document.getElementById('passGroup').style.display = 'none';
-          document.getElementById('studentGroup').style.display = 'block';
-      } else {
-          document.getElementById('passGroup').style.display = 'block';
-          document.getElementById('studentGroup').style.display = 'none';
-      }
-  }
-
-  window.openUserModal = function() {
-      document.getElementById('newUName').value = "";
-      document.getElementById('newUPass').value = "";
-      document.getElementById('newUHak').value = "0";
-      document.getElementById('newURole').value = "student";
-      
-      const select = document.getElementById('newUHoca');
-      select.innerHTML = '<option value="">-- Sorumlu Hoca Seçin --</option>';
-      admins.forEach(a => { select.innerHTML += `<option value="${a}">${a}</option>`; });
-      
-      window.toggleUserFields();
-      document.getElementById('userModal').style.display = "flex";
-  }
-  
-  window.closeUserModal = function() { document.getElementById('userModal').style.display = "none"; }
-  
-  window.saveNewUser = async function() {
-      const uRole = document.getElementById('newURole').value;
-      const uName = document.getElementById('newUName').value.trim();
-      
-      if(!uName) return alert("Lütfen Ad Soyad veya Giriş Adı girin!");
-      
-      let data = { role: uRole, log: "Sisteme eklendi.\n" };
-
-      if (uRole === 'student') {
-          const uHak = parseInt(document.getElementById('newUHak').value) || 0;
-          const uHoca = document.getElementById('newUHoca').value;
-          if(!uHoca) return alert("Lütfen öğrenci için sorumlu hoca seçin!");
-          data.password = ""; // Öğrencinin şifreye ihtiyacı yok
-          data.hak = uHak;
-          data.sorumlu_hoca = uHoca;
-      } else {
-          const uPass = document.getElementById('newUPass').value.trim();
-          if(!uPass) return alert("Lütfen hocaya bir şifre belirleyin!");
-          data.password = uPass;
-          data.hak = 0;
-          data.sorumlu_hoca = "";
-      }
-      
-      window.closeUserModal();
-      loading(true);
-      try {
-          await setDoc(doc(db, "users", uName), data);
-          alert(`${uName} başarıyla sisteme eklendi!`);
-          await window.load();
-      } catch(e) {
-          alert("Hata oluştu: " + e.message);
-      }
-      loading(false);
-  }
-
+  window.adInit = function() { flatpickr("#adPick", {inline:true, locale:"tr", onChange:(d,s)=>{selProg=s; document.getElementById('addArea').style.display = 'block'; window.renderAll();}}); flatpickr("#donePick", {inline:true, locale:"tr", onChange:(d,s)=>{selDone=s; window.renderDone();}}); }
+  window.openTimeModal = function() { document.getElementById('timeModal').style.display="flex"; }
+  window.closeTimeModal = function() { document.getElementById('timeModal').style.display="none"; }
+  window.confirmTime = async function() { const t = document.getElementById('tS').value.replace(':','.') + "-" + document.getElementById('tE').value.replace(':','.'); window.closeTimeModal(); loading(true); await addDoc(collection(db, "slots"), { tarih: selProg.split('-').reverse().join('.'), isoTarih: selProg, saat: t, ogrenci: "", hoca: currentHocaFilter, durum: "", konu: "", video: "" }); await window.load(); loading(false); }
+  window.openOgrModal = function(id) { const sel = document.getElementById('ogrSelect'); sel.innerHTML = ""; students.filter(x => x.hoca === currentHocaFilter).forEach(x => sel.add(new Option(x.isim + " (Hak:"+x.hak+")", x.isim))); document.getElementById('tempRow').value = id; document.getElementById('ogrModal').style.display="flex"; }
+  window.closeOgrModal = function() { document.getElementById('ogrModal').style.display="none"; }
+  window.confirmOgr = async function() { const n = document.getElementById('ogrSelect').value; const id = document.getElementById('tempRow').value; window.closeOgrModal(); loading(true); const uRef = doc(db, "users", n); const uD = (await getDoc(uRef)).data(); if(uD.hak <= 0) { alert("Hak yok!"); loading(false); return; } await updateDoc(uRef, { hak: uD.hak - 1, log: `-1 hak | ${getSuan()} | Ders Alındı\n${uD.log||""}` }); await updateDoc(doc(db, "slots", id), { ogrenci: n }); await window.load(); loading(false); }
+  window.toggleUserFields = function() { const r = document.getElementById('newURole').value; document.getElementById('passGroup').style.display = r==='student' ? 'none' : 'block'; document.getElementById('studentGroup').style.display = r==='student' ? 'block' : 'none'; }
+  window.openUserModal = function() { const sel = document.getElementById('newUHoca'); sel.innerHTML = ""; admins.forEach(a => sel.add(new Option(a, a))); document.getElementById('userModal').style.display="flex"; }
+  window.closeUserModal = function() { document.getElementById('userModal').style.display="none"; }
+  window.saveNewUser = async function() { const r = document.getElementById('newURole').value; const n = document.getElementById('newUName').value.trim(); loading(true); if(r === 'student') { await setDoc(doc(db, "users", n), { role: 'student', hak: parseInt(document.getElementById('newUHak').value)||0, sorumlu_hoca: document.getElementById('newUHoca').value, log: "Eklendi." }); } else { await createUserWithEmailAndPassword(secondaryAuth, n, document.getElementById('newUPass').value); await signOut(secondaryAuth); await setDoc(doc(db, "users", n), { role: r }); } window.closeUserModal(); await window.load(); loading(false); }
+  window.openNoteModal = function(id, k, v) { document.getElementById('nRow').value = id; document.getElementById('nKonu').value = decodeURIComponent(k); document.getElementById('nVideo').value = decodeURIComponent(v); document.getElementById('noteModal').style.display = "flex"; }
+  window.closeNoteModal = function() { document.getElementById('noteModal').style.display = "none"; }
+  window.saveNoteBtn = async function() { const id = document.getElementById('nRow').value; loading(true); await updateDoc(doc(db, "slots", id), { konu: document.getElementById('nKonu').value, video: document.getElementById('nVideo').value }); window.closeNoteModal(); await window.load(); loading(false); }
 </script>
 </body>
 </html>
