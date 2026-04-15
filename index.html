@@ -31,7 +31,7 @@
 
 <div id="loader">İşleniyor...</div>
 
-<div class="card" id="publicBox">
+<div class="card" id="publicBox" style="display:none;">
   <div style="text-align:center; margin-bottom:20px;">
     <h1 style="margin:0; font-size:24px; color:var(--p); font-weight:800;">EREN OKAT</h1>
     <p style="margin:5px 0; color:#64748b; font-weight:500;">Ders Programı</p>
@@ -54,6 +54,7 @@
 <div class="card" id="adminBox" style="display:none;">
   <div class="status-bar" id="adStatus"></div>
   <select id="hSelect" style="display:none; border:2px solid var(--p); font-weight:bold; color:var(--p); width:100%; padding:10px; border-radius:10px; margin-bottom:15px;" onchange="renderAll()"></select>
+  
   <div class="nav">
     <button id="adTabP" onclick="adSwitch('prog')">Program</button>
     <button onclick="adSwitch('hist')">Geçmiş</button>
@@ -61,10 +62,21 @@
     <button onclick="adSwitch('hak')">Hak Ekle</button>
     <button id="btnKullaniciEkle" onclick="openUserModal()" style="display:none; background:var(--p); color:white; flex: 100%; margin-top:5px; font-weight:bold;">+ Yeni Kullanıcı Ekle</button>
   </div>
-  <div id="adViewP" style="display:none;"><input type="text" id="adPick"><div id="addArea" style="display:none; margin-top:10px;"><button onclick="openTimeModal()" class="btn-act" style="background:var(--p); width:100%; padding:12px;">+ Yeni Ders Saati Ekle</button></div><div id="adList" style="margin-top:10px;"></div></div>
+  
+  <div id="adViewP" style="display:none;">
+    <input type="text" id="adPick">
+    <div id="addArea" style="display:none; margin-top:10px;"><button onclick="openTimeModal()" class="btn-act" style="background:var(--p); width:100%; padding:12px;">+ Yeni Ders Saati Ekle</button></div>
+    <div id="adList" style="margin-top:10px;"></div>
+  </div>
+  
   <div id="adViewH" style="display:none;"><div id="adReport"></div></div>
   <div id="adViewD" style="display:none;"><input type="text" id="donePick"><div id="doneList"></div></div>
-  <div id="adViewHak" style="display:none;"><input type="text" id="ogrSearch" placeholder="Öğrenci Ara..." onkeyup="renderOgrList()"><div id="ogrList" style="max-height: 400px; overflow-y: auto;"></div></div>
+  
+  <div id="adViewHak" style="display:none;">
+    <input type="text" id="ogrSearch" placeholder="Öğrenci Ara..." onkeyup="renderOgrList()" style="margin-bottom:10px; border:1px solid var(--p);">
+    <div id="ogrList" style="max-height: 400px; overflow-y: auto;"></div>
+  </div>
+
   <button onclick="logoutAuth()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#64748b; color:white; border-radius:10px; cursor:pointer;">Sistemden Çıkış Yap</button>
 </div>
 
@@ -101,7 +113,13 @@
 
   const G_ISIM = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
   window.getDayName = function(t) { const p = t.split("."); return G_ISIM[new Date(p[2], p[1]-1, p[0]).getDay()]; }
-  window.checkT = function(t, s) { const p = t.split("."); const hm = s.split("-")[0].split(/[.:]/); return new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0) <= new Date(); }
+  
+  window.checkT = function(t, s) { 
+      const p = t.split("."); 
+      const endSaat = s.includes("-") ? s.split("-")[1] : s.split("-")[0];
+      const hm = endSaat.split(/[.:]/); 
+      return new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0) <= new Date(); 
+  }
   window.sortByTime = function(arr) { return arr.sort((a, b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat)); }
   function loading(s) { document.getElementById('loader').style.display = s ? 'block' : 'none'; }
   function getSuan() { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
@@ -114,8 +132,16 @@
         document.getElementById('publicBox').style.display = "none";
         document.getElementById('loginBox').style.display = "none";
         document.getElementById('adminBox').style.display = "block";
-        document.getElementById('adStatus').innerHTML = `<span>${user.name.split("@")[0].toUpperCase()}</span><b>${user.role.toUpperCase()}</b>`;
-        if(user.role === 'super_admin') { document.getElementById('hSelect').style.display = "block"; document.getElementById('btnKullaniciEkle').style.display = "block"; }
+        document.getElementById('adStatus').innerHTML = `<span>${user.name.split("@")[0].toUpperCase()}</span><b>${user.role === 'super_admin' ? 'SÜPER ADMİN' : 'HOCA'}</b>`;
+        
+        if(user.role === 'super_admin') { 
+            document.getElementById('hSelect').style.display = "block"; 
+            document.getElementById('btnKullaniciEkle').style.display = "block"; 
+        } else {
+            document.getElementById('hSelect').style.display = "none"; 
+            document.getElementById('btnKullaniciEkle').style.display = "none";
+        }
+        
         window.adInit(); window.adSwitch('prog');
       }
     } else {
@@ -129,17 +155,35 @@
         const uSnap = await getDocs(collection(db, "users"));
         const sSnap = await getDocs(collection(db, "slots"));
         let rawU = []; uSnap.forEach(d => rawU.push({ id: d.id, ...d.data() }));
-        admins = rawU.filter(u => u.role === "admin").map(u => u.id);
+        
+        admins = rawU.filter(u => u.role === "admin").map(u => u.id); 
         students = rawU.filter(u => u.role === "student").map(u => ({ isim: u.id, hak: u.hak, hoca: u.sorumlu_hoca }));
+        
+        const now = new Date();
         slots = [];
+        
         sSnap.forEach(d => {
             let r = { id: d.id, ...d.data() };
             let ogr = (r.ogrenci || "").split(" (")[0].trim();
             let found = rawU.find(u => u.id === ogr);
+            
+            if (r.ogrenci && !r.ogrenci.includes("İPTAL") && r.durum !== "TAMAMLANDI") {
+                const p = r.tarih.split(".");
+                const endSaat = r.saat.includes("-") ? r.saat.split("-")[1] : r.saat.split("-")[0];
+                const hm = endSaat.split(/[.:]/);
+                
+                if (new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0) <= now) {
+                    r.durum = "TAMAMLANDI";
+                    updateDoc(doc(db, "slots", r.id), { durum: "TAMAMLANDI" });
+                }
+            }
+
             slots.push({ ...r, ogr_hak: found ? found.hak : "0" });
         });
-        if (admins.length > 0 && document.getElementById('hSelect').options.length === 0) {
-            admins.forEach(a => document.getElementById('hSelect').add(new Option(a.split('@')[0].toUpperCase(), a)));
+        
+        const hSelectBox = document.getElementById('hSelect');
+        if (admins.length > 0 && hSelectBox.options.length === 0) {
+            admins.forEach(a => hSelectBox.add(new Option(a.split('@')[0].toUpperCase(), a)));
         }
         window.renderAll();
     } catch(e) {}
@@ -172,29 +216,40 @@
     window.renderAll();
   }
 
+  // --- PROGRAM SEKMESİ: İPTAL BUTONU GİZLEME MANTIĞI EKLENDİ ---
   window.renderAdP = function() {
     const f = window.sortByTime(slots.filter(s => s.hoca === currentHocaFilter && s.isoTarih === selProg));
     document.getElementById('adList').innerHTML = f.map(s => {
-      let btn = s.durum === "TAMAMLANDI" ? `<span class="badge b-green">BİTTİ</span>` : (s.ogrenci ? `<button onclick="handleCancel('${s.id}')" class="btn-act" style="background:var(--c)">İptal</button>` : `<div style="display:flex; gap:5px;"><button onclick="sil('${s.id}')" class="btn-sil">Sil</button><button onclick="openOgrModal('${s.id}')" class="btn-act" style="background:var(--s)">Ekle</button></div>`);
-      return `<div class="slot"><div><b>${s.saat}</b><br><small>${s.ogrenci || 'BOŞ'}</small></div>${btn}</div>`;
+      // Artık içinde İPTAL yazıyorsa "dolu" sayılmayacak, İptal butonu KALKACAK
+      const isTaken = s.ogrenci !== "" && !s.ogrenci.includes("İPTAL");
+      
+      let btn = "";
+      if (s.durum === "TAMAMLANDI") {
+          btn = `<span class="badge b-green">BİTTİ</span>`;
+      } else if (isTaken) {
+          btn = `<button onclick="handleCancel('${s.id}')" class="btn-act" style="background:var(--c)">İptal</button>`;
+      } else {
+          // Öğrenci yoksa VEYA iptal edildiyse, yeni öğrenci eklemek için Ekle/Sil butonu çıksın
+          btn = `<div style="display:flex; gap:5px;"><button onclick="sil('${s.id}')" class="btn-sil">Sil</button><button onclick="openOgrModal('${s.id}')" class="btn-act" style="background:var(--s)">Ekle</button></div>`;
+      }
+
+      // Ekranda İptal olan kişinin adı kırmızı gözüksün ki anlaşılsın
+      let ogrMetin = 'BOŞ';
+      if (isTaken) ogrMetin = s.ogrenci;
+      else if (s.ogrenci.includes("İPTAL")) ogrMetin = `<span style="color:var(--c); font-size:12px;">${s.ogrenci.split(" - ")[0]} (İPTAL)</span>`;
+
+      return `<div class="slot"><div><b>${s.saat}</b><br><small>${ogrMetin}</small></div>${btn}</div>`;
     }).join('');
   }
 
-  // --- MÜKEMMEL GEÇMİŞ (HISTORY) SIRALAMASI ---
   window.renderAdH = function() {
     const h = slots.filter(s => s.hoca === currentHocaFilter && s.ogrenci !== "");
-    
-    // Aktif olanlar ve Bitmiş olanları ayırıyoruz
     const active = h.filter(s => !(window.checkT(s.tarih, s.saat) || s.ogrenci.includes("İPTAL") || s.durum === "TAMAMLANDI"));
     const past = h.filter(s => window.checkT(s.tarih, s.saat) || s.ogrenci.includes("İPTAL") || s.durum === "TAMAMLANDI");
 
-    // Aktifler: En yakın tarih en üstte (Artan sıralama)
     active.sort((a,b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat));
-    
-    // Bitmişler: En yakın geçmiş en üstte (Azalan sıralama)
     past.sort((a,b) => (b.tarih.split('.').reverse().join('')+b.saat).localeCompare(a.tarih.split('.').reverse().join('')+a.saat));
 
-    // Önce aktifler, sonra bitmişler
     const sorted = [...active, ...past];
 
     document.getElementById('adReport').innerHTML = sorted.map(s => {
@@ -223,7 +278,39 @@
   window.logoutAuth = function() { signOut(auth); }
   window.showLogin = function() { document.getElementById('publicBox').style.display = "none"; document.getElementById('loginBox').style.display = "block"; }
   window.hideLogin = function() { document.getElementById('loginBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; }
-  window.handleCancel = async function(id) { if (confirm("İptal edilsin mi?")) { loading(true); const sRef = doc(db, "slots", id); const sD = (await getDoc(sRef)).data(); const ogr = sD.ogrenci.split(" (")[0]; await updateDoc(sRef, { ogrenci: `${ogr} (İPTAL) - ${getSuan()}` }); const uRef = doc(db, "users", ogr); const uD = (await getDoc(uRef)).data(); await updateDoc(uRef, { hak: uD.hak + 1, log: `+1 hak | ${getSuan()} | İptal\n${uD.log||""}` }); await window.load(); loading(false); } }
+  
+  // --- ÇİFT TIKLAMAYI ENGELLEYEN BANKA ZIRHLI İPTAL MOTORU ---
+  window.handleCancel = async function(id) { 
+      if (confirm("Dersi iptal edip öğrenciye hakkını iade etmek istediğinize emin misiniz?")) { 
+          loading(true); 
+          const sRef = doc(db, "slots", id); 
+          const sDoc = await getDoc(sRef);
+          
+          if(!sDoc.exists()) { loading(false); return; }
+          const sD = sDoc.data(); 
+          
+          // GÜVENLİK DUVARI: Ders zaten iptal edildiyse, sistemi durdur ve uyarı ver.
+          if (sD.ogrenci.includes("İPTAL")) {
+              alert("Bu ders zaten iptal edilmiş! Çift tıklama algılandı.");
+              loading(false);
+              return;
+          }
+
+          const ogr = sD.ogrenci.split(" (")[0].trim(); 
+          await updateDoc(sRef, { ogrenci: `${ogr} (İPTAL) - ${getSuan()}` }); 
+          
+          const uRef = doc(db, "users", ogr); 
+          const uDoc = await getDoc(uRef); 
+          if(uDoc.exists()) {
+              const uD = uDoc.data(); 
+              await updateDoc(uRef, { hak: uD.hak + 1, log: `+1 hak | ${getSuan()} | İptal\n${uD.log||""}` }); 
+          }
+          
+          await window.load(); 
+          loading(false); 
+      } 
+  }
+  
   window.addHakBtn = async function(n) { const h = prompt(n + " için kaç hak?"); if(!h) return; loading(true); const uRef = doc(db, "users", n); const d = (await getDoc(uRef)).data(); await updateDoc(uRef, { hak: d.hak + parseInt(h), log: `+${h} hak | ${getSuan()}\n${d.log||""}` }); await window.load(); loading(false); }
   window.sil = async function(id) { if(confirm("Silinsin mi?")) { loading(true); await deleteDoc(doc(db, "slots", id)); await window.load(); loading(false); } }
   window.adInit = function() { flatpickr("#adPick", {inline:true, locale:"tr", onChange:(d,s)=>{selProg=s; document.getElementById('addArea').style.display = 'block'; window.renderAll();}}); flatpickr("#donePick", {inline:true, locale:"tr", onChange:(d,s)=>{selDone=s; window.renderDone();}}); }
@@ -234,7 +321,14 @@
   window.closeOgrModal = function() { document.getElementById('ogrModal').style.display="none"; }
   window.confirmOgr = async function() { const n = document.getElementById('ogrSelect').value; const id = document.getElementById('tempRow').value; window.closeOgrModal(); loading(true); const uRef = doc(db, "users", n); const uD = (await getDoc(uRef)).data(); if(uD.hak <= 0) { alert("Hak yok!"); loading(false); return; } await updateDoc(uRef, { hak: uD.hak - 1, log: `-1 hak | ${getSuan()} | Ders Alındı\n${uD.log||""}` }); await updateDoc(doc(db, "slots", id), { ogrenci: n }); await window.load(); loading(false); }
   window.toggleUserFields = function() { const r = document.getElementById('newURole').value; document.getElementById('passGroup').style.display = r==='student' ? 'none' : 'block'; document.getElementById('studentGroup').style.display = r==='student' ? 'block' : 'none'; }
-  window.openUserModal = function() { const sel = document.getElementById('newUHoca'); sel.innerHTML = ""; admins.forEach(a => sel.add(new Option(a, a))); document.getElementById('userModal').style.display="flex"; }
+  
+  window.openUserModal = function() { 
+      if (user.role !== 'super_admin') return alert("Sadece Süper Adminler kullanıcı ekleyebilir!");
+      const sel = document.getElementById('newUHoca'); sel.innerHTML = ""; 
+      admins.forEach(a => sel.add(new Option(a, a))); 
+      document.getElementById('userModal').style.display="flex"; 
+  }
+  
   window.closeUserModal = function() { document.getElementById('userModal').style.display="none"; }
   window.saveNewUser = async function() { const r = document.getElementById('newURole').value; const n = document.getElementById('newUName').value.trim(); loading(true); if(r === 'student') { await setDoc(doc(db, "users", n), { role: 'student', hak: parseInt(document.getElementById('newUHak').value)||0, sorumlu_hoca: document.getElementById('newUHoca').value, log: "Eklendi." }); } else { await createUserWithEmailAndPassword(secondaryAuth, n, document.getElementById('newUPass').value); await signOut(secondaryAuth); await setDoc(doc(db, "users", n), { role: r }); } window.closeUserModal(); await window.load(); loading(false); }
   window.openNoteModal = function(id, k, v) { document.getElementById('nRow').value = id; document.getElementById('nKonu').value = decodeURIComponent(k); document.getElementById('nVideo').value = decodeURIComponent(v); document.getElementById('noteModal').style.display = "flex"; }
