@@ -31,7 +31,7 @@
 
 <div id="loader">İşleniyor...</div>
 
-<div class="card" id="publicBox" style="display:none;">
+<div class="card" id="publicBox" style="display:block;">
   <div style="text-align:center; margin-bottom:20px;">
     <h1 style="margin:0; font-size:24px; color:var(--p); font-weight:800;">EREN OKAT</h1>
     <p style="margin:5px 0; color:#64748b; font-weight:500;">Ders Programı</p>
@@ -114,12 +114,14 @@
   const G_ISIM = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
   window.getDayName = function(t) { const p = t.split("."); return G_ISIM[new Date(p[2], p[1]-1, p[0]).getDay()]; }
   
+  // ---> DÜZELTİLEN YER 1: ZAMAN KONTROLÜ BAŞLANGIÇ SAATİNE (split("-")[0]) GÖRE YAPILDI <---
   window.checkT = function(t, s) { 
       const p = t.split("."); 
-      const endSaat = s.includes("-") ? s.split("-")[1] : s.split("-")[0];
-      const hm = endSaat.split(/[.:]/); 
+      const startSaat = s.split("-")[0].trim();
+      const hm = startSaat.split(/[.:]/); 
       return new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0) <= new Date(); 
   }
+  
   window.sortByTime = function(arr) { return arr.sort((a, b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat)); }
   function loading(s) { document.getElementById('loader').style.display = s ? 'block' : 'none'; }
   function getSuan() { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
@@ -167,10 +169,11 @@
             let ogr = (r.ogrenci || "").split(" (")[0].trim();
             let found = rawU.find(u => u.id === ogr);
             
+            // ---> DÜZELTİLEN YER 2: VERİTABANI GÜNCELLEMESİ BAŞLANGIÇ SAATİNE GÖRE YAPILDI <---
             if (r.ogrenci && !r.ogrenci.includes("İPTAL") && r.durum !== "TAMAMLANDI") {
                 const p = r.tarih.split(".");
-                const endSaat = r.saat.includes("-") ? r.saat.split("-")[1] : r.saat.split("-")[0];
-                const hm = endSaat.split(/[.:]/);
+                const startSaat = r.saat.split("-")[0].trim();
+                const hm = startSaat.split(/[.:]/);
                 
                 if (new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0) <= now) {
                     r.durum = "TAMAMLANDI";
@@ -216,11 +219,9 @@
     window.renderAll();
   }
 
-  // --- PROGRAM SEKMESİ: İPTAL BUTONU GİZLEME MANTIĞI EKLENDİ ---
   window.renderAdP = function() {
     const f = window.sortByTime(slots.filter(s => s.hoca === currentHocaFilter && s.isoTarih === selProg));
     document.getElementById('adList').innerHTML = f.map(s => {
-      // Artık içinde İPTAL yazıyorsa "dolu" sayılmayacak, İptal butonu KALKACAK
       const isTaken = s.ogrenci !== "" && !s.ogrenci.includes("İPTAL");
       
       let btn = "";
@@ -229,11 +230,9 @@
       } else if (isTaken) {
           btn = `<button onclick="handleCancel('${s.id}')" class="btn-act" style="background:var(--c)">İptal</button>`;
       } else {
-          // Öğrenci yoksa VEYA iptal edildiyse, yeni öğrenci eklemek için Ekle/Sil butonu çıksın
           btn = `<div style="display:flex; gap:5px;"><button onclick="sil('${s.id}')" class="btn-sil">Sil</button><button onclick="openOgrModal('${s.id}')" class="btn-act" style="background:var(--s)">Ekle</button></div>`;
       }
 
-      // Ekranda İptal olan kişinin adı kırmızı gözüksün ki anlaşılsın
       let ogrMetin = 'BOŞ';
       if (isTaken) ogrMetin = s.ogrenci;
       else if (s.ogrenci.includes("İPTAL")) ogrMetin = `<span style="color:var(--c); font-size:12px;">${s.ogrenci.split(" - ")[0]} (İPTAL)</span>`;
@@ -279,7 +278,6 @@
   window.showLogin = function() { document.getElementById('publicBox').style.display = "none"; document.getElementById('loginBox').style.display = "block"; }
   window.hideLogin = function() { document.getElementById('loginBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; }
   
-  // --- ÇİFT TIKLAMAYI ENGELLEYEN BANKA ZIRHLI İPTAL MOTORU ---
   window.handleCancel = async function(id) { 
       if (confirm("Dersi iptal edip öğrenciye hakkını iade etmek istediğinize emin misiniz?")) { 
           loading(true); 
@@ -289,7 +287,6 @@
           if(!sDoc.exists()) { loading(false); return; }
           const sD = sDoc.data(); 
           
-          // GÜVENLİK DUVARI: Ders zaten iptal edildiyse, sistemi durdur ve uyarı ver.
           if (sD.ogrenci.includes("İPTAL")) {
               alert("Bu ders zaten iptal edilmiş! Çift tıklama algılandı.");
               loading(false);
