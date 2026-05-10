@@ -60,6 +60,7 @@
     <button onclick="adSwitch('hist')">Geçmiş</button>
     <button onclick="adSwitch('done')">Yapılanlar</button>
     <button onclick="adSwitch('hak')">Hak Ekle</button>
+    <button onclick="adSwitch('detay')">Ders Detay</button>
     <button id="btnKullaniciEkle" onclick="openUserModal()" style="display:none; background:var(--p); color:white; flex: 100%; margin-top:5px; font-weight:bold;">+ Yeni Kullanıcı Ekle</button>
   </div>
   
@@ -73,8 +74,13 @@
   <div id="adViewD" style="display:none;"><input type="text" id="donePick"><div id="doneList"></div></div>
   
   <div id="adViewHak" style="display:none;">
-    <input type="text" id="ogrSearch" placeholder="Öğrenci Ara..." onkeyup="renderOgrList()" style="margin-bottom:10px; border:1px solid var(--p);">
+    <input type="text" id="ogrSearch" placeholder="Öğrenci Ara (Hak Ekle)..." onkeyup="renderOgrList()" style="margin-bottom:10px; border:1px solid var(--p);">
     <div id="ogrList" style="max-height: 400px; overflow-y: auto;"></div>
+  </div>
+
+  <div id="adViewDetay" style="display:none;">
+    <input type="text" id="detaySearch" placeholder="Öğrenci Ara (Geçmiş Notlar)..." onkeyup="renderDetay()" style="margin-bottom:10px; border:1px solid var(--p);">
+    <div id="detayList" style="max-height: 400px; overflow-y: auto;"></div>
   </div>
 
   <button onclick="logoutAuth()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#64748b; color:white; border-radius:10px; cursor:pointer;">Sistemden Çıkış Yap</button>
@@ -112,16 +118,22 @@
   let selProg = "", selDone = "", currentHocaFilter = "", selPublicProg = "";
 
   const G_ISIM = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-  window.getDayName = function(t) { const p = t.split("."); return G_ISIM[new Date(p[2], p[1]-1, p[0]).getDay()]; }
+  const AYLAR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
   
-  // ---> DÜZELTİLEN YER 1: ZAMAN KONTROLÜ BAŞLANGIÇ SAATİNE (split("-")[0]) GÖRE YAPILDI <---
+  window.getDayName = function(t) { const p = t.split("."); return G_ISIM[new Date(p[2], p[1]-1, p[0]).getDay()]; }
+  window.getPrettyDate = function(t) {
+      const p = t.split(".");
+      const d = parseInt(p[0]);
+      const m = AYLAR[parseInt(p[1]) - 1];
+      return `${d} ${m} ${window.getDayName(t)}`;
+  }
+  
   window.checkT = function(t, s) { 
       const p = t.split("."); 
       const startSaat = s.split("-")[0].trim();
       const hm = startSaat.split(/[.:]/); 
       return new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0) <= new Date(); 
   }
-  
   window.sortByTime = function(arr) { return arr.sort((a, b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat)); }
   function loading(s) { document.getElementById('loader').style.display = s ? 'block' : 'none'; }
   function getSuan() { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
@@ -169,7 +181,6 @@
             let ogr = (r.ogrenci || "").split(" (")[0].trim();
             let found = rawU.find(u => u.id === ogr);
             
-            // ---> DÜZELTİLEN YER 2: VERİTABANI GÜNCELLEMESİ BAŞLANGIÇ SAATİNE GÖRE YAPILDI <---
             if (r.ogrenci && !r.ogrenci.includes("İPTAL") && r.durum !== "TAMAMLANDI") {
                 const p = r.tarih.split(".");
                 const startSaat = r.saat.split("-")[0].trim();
@@ -195,7 +206,7 @@
   window.renderAll = function() {
     if (user) {
         currentHocaFilter = user.role === 'super_admin' ? (document.getElementById('hSelect').value || admins[0]) : user.name;
-        window.renderAdP(); window.renderAdH(); window.renderDone(); window.renderOgrList();
+        window.renderAdP(); window.renderAdH(); window.renderDone(); window.renderOgrList(); window.renderDetay();
     } else { window.renderPublic(); }
   }
 
@@ -214,8 +225,8 @@
   }
 
   window.adSwitch = function(t) {
-    ['P','H','D','Hak'].forEach(v => document.getElementById('adView'+v).style.display = 'none');
-    document.getElementById('adView'+(t==='prog'?'P':t==='hist'?'H':t==='done'?'D':'Hak')).style.display = 'block';
+    ['P','H','D','Hak', 'Detay'].forEach(v => document.getElementById('adView'+v).style.display = 'none');
+    document.getElementById('adView'+(t==='prog'?'P':t==='hist'?'H':t==='done'?'D':t==='hak'?'Hak':'Detay')).style.display = 'block';
     window.renderAll();
   }
 
@@ -268,9 +279,61 @@
   }
 
   window.renderOgrList = function() {
+    if (!document.getElementById('adViewHak') || document.getElementById('adViewHak').style.display === 'none') return;
     const s = document.getElementById('ogrSearch').value.toLowerCase();
     const list = students.filter(x => x.hoca === currentHocaFilter && x.isim.toLowerCase().includes(s));
     document.getElementById('ogrList').innerHTML = list.map(x => `<div class="slot"><div><b style="color:var(--p);">${x.isim}</b><br><small>Mevcut Hak: <b>${x.hak}</b></small></div><button onclick="addHakBtn('${x.isim}')" class="btn-act" style="background:var(--s)">+ Hak Ekle</button></div>`).join('');
+  }
+
+  // --- AKORDEON (AÇILIR KAPANIR) DERS DETAY MOTORU ---
+  window.renderDetay = function() {
+    if (document.getElementById('adViewDetay').style.display === 'none') return;
+    const sText = document.getElementById('detaySearch').value.toLowerCase();
+    
+    let pastSlots = slots.filter(s => s.hoca === currentHocaFilter && s.ogrenci !== "" && !s.ogrenci.includes("İPTAL") && (s.konu || s.video));
+    
+    let grouped = {};
+    pastSlots.forEach(s => {
+        let oName = s.ogrenci.split(" (")[0].trim();
+        if (!grouped[oName]) grouped[oName] = [];
+        grouped[oName].push(s);
+    });
+
+    let oNames = Object.keys(grouped).filter(n => n.toLowerCase().includes(sText)).sort();
+
+    let html = "";
+    if(oNames.length === 0) {
+        html = "<p style='text-align:center; color:#64748b;'>Not girilmiş geçmiş ders bulunamadı.</p>";
+    } else {
+        oNames.forEach((n, idx) => {
+            let oSlots = grouped[n].sort((a,b) => (b.tarih.split('.').reverse().join('')+b.saat).localeCompare(a.tarih.split('.').reverse().join('')+a.saat));
+            
+            let rows = oSlots.map(s => {
+                let textArray = [];
+                if (s.konu) textArray.push(`<b>Konu:</b> ${s.konu}`);
+                if (s.video) textArray.push(`<b>Video:</b> ${s.video}`);
+                return `
+                <div style="padding:8px 0; border-bottom:1px dashed #e2e8f0; font-size:13px;">
+                    <div style="color:var(--s); font-weight:bold; margin-bottom:4px;">${window.getPrettyDate(s.tarih)}</div>
+                    <div style="color:#475569; white-space:pre-wrap;">${textArray.join('  |  ')}</div>
+                </div>`;
+            }).join('');
+
+            const contentId = `detay_content_${idx}`;
+            
+            html += `
+            <div class="slot" style="flex-direction:column; align-items:stretch; background:#f8fafc; border-left:5px solid var(--p); padding:0; overflow:hidden;">
+                <div style="font-weight:900; color:var(--p); font-size:15px; padding:14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="const el = document.getElementById('${contentId}'); el.style.display = el.style.display === 'none' ? 'block' : 'none';">
+                    <span>${n}</span>
+                    <span style="font-size:10px; color:#64748b; background:#e2e8f0; padding:4px 8px; border-radius:6px;">Detayları Gör ▼</span>
+                </div>
+                <div id="${contentId}" style="display:none; padding:0 14px 14px 14px; border-top:1px solid #eef2ff;">
+                    ${rows}
+                </div>
+            </div>`;
+        });
+    }
+    document.getElementById('detayList').innerHTML = html;
   }
 
   window.loginAuth = async function() { loading(true); try { await signInWithEmailAndPassword(auth, document.getElementById('u').value.trim(), document.getElementById('p').value.trim()); } catch(e) { alert("Hata: " + e.message); } loading(false); }
