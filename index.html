@@ -86,6 +86,7 @@
   <button onclick="logoutAuth()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#64748b; color:white; border-radius:10px; cursor:pointer;">Sistemden Çıkış Yap</button>
 </div>
 
+<!-- MODALLAR -->
 <div id="noteModal" class="modal"><div class="modal-content"><h3 style="text-align:center; color:var(--p); margin-top:0;">Ders Hakkında</h3><label style="font-size:13px; font-weight:bold; color:#64748b;">İşlenen Konu:</label><textarea id="nKonu" rows="4" style="margin-top:5px; margin-bottom:15px;"></textarea><label style="font-size:13px; font-weight:bold; color:#64748b;">Atılacak Video:</label><textarea id="nVideo" rows="3" style="margin-top:5px; margin-bottom:15px;"></textarea><input type="hidden" id="nRow"><button onclick="saveNoteBtn()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold;">Kaydet</button><button onclick="closeNoteModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b;">İptal</button></div></div>
 <div id="timeModal" class="modal"><div class="modal-content"><h3 style="text-align:center;">Ders Saati Belirle</h3><div style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:15px;"><input type="time" id="tS" style="flex:1; padding:12px; font-weight:bold;"> - <input type="time" id="tE" style="flex:1; padding:12px; font-weight:bold;"></div><button onclick="confirmTime()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px;">Kaydet ve Ekle</button><button onclick="closeTimeModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Vazgeç</button></div></div>
 <div id="ogrModal" class="modal"><div class="modal-content"><h3>Öğrenci Seç</h3><select id="ogrSelect" style="width:100%; padding:14px; margin-bottom:15px; border-radius:10px;"></select><input type="hidden" id="tempRow"><button onclick="confirmOgr()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px;">Öğrenciyi Yaz</button><button onclick="closeOgrModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">İptal</button></div></div>
@@ -171,7 +172,7 @@
         let rawU = []; uSnap.forEach(d => rawU.push({ id: d.id, ...d.data() }));
         
         admins = rawU.filter(u => u.role === "admin").map(u => u.id); 
-        students = rawU.filter(u => u.role === "student").map(u => ({ isim: u.id, hak: u.hak, hoca: u.sorumlu_hoca }));
+        students = rawU.filter(u => u.role === "student").map(u => ({ isim: u.id, hak: parseInt(u.hak) || 0, hoca: u.sorumlu_hoca }));
         
         const now = new Date();
         slots = [];
@@ -192,7 +193,7 @@
                 }
             }
 
-            slots.push({ ...r, ogr_hak: found ? found.hak : "0" });
+            slots.push({ ...r, ogr_hak: found ? (parseInt(found.hak) || 0) : "0" });
         });
         
         const hSelectBox = document.getElementById('hSelect');
@@ -285,11 +286,9 @@
     document.getElementById('ogrList').innerHTML = list.map(x => `<div class="slot"><div><b style="color:var(--p);">${x.isim}</b><br><small>Mevcut Hak: <b>${x.hak}</b></small></div><button onclick="addHakBtn('${x.isim}')" class="btn-act" style="background:var(--s)">+ Hak Ekle</button></div>`).join('');
   }
 
-  // --- AKORDEON (AÇILIR KAPANIR) DERS DETAY MOTORU ---
   window.renderDetay = function() {
     if (document.getElementById('adViewDetay').style.display === 'none') return;
     const sText = document.getElementById('detaySearch').value.toLowerCase();
-    
     let pastSlots = slots.filter(s => s.hoca === currentHocaFilter && s.ogrenci !== "" && !s.ogrenci.includes("İPTAL") && (s.konu || s.video));
     
     let grouped = {};
@@ -320,7 +319,6 @@
             }).join('');
 
             const contentId = `detay_content_${idx}`;
-            
             html += `
             <div class="slot" style="flex-direction:column; align-items:stretch; background:#f8fafc; border-left:5px solid var(--p); padding:0; overflow:hidden;">
                 <div style="font-weight:900; color:var(--p); font-size:15px; padding:14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="const el = document.getElementById('${contentId}'); el.style.display = el.style.display === 'none' ? 'block' : 'none';">
@@ -341,37 +339,63 @@
   window.showLogin = function() { document.getElementById('publicBox').style.display = "none"; document.getElementById('loginBox').style.display = "block"; }
   window.hideLogin = function() { document.getElementById('loginBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; }
   
+  // --- ZIRHLI VE MATEMATİK GARANTİLİ İPTAL VE HAK İADE MOTORU ---
   window.handleCancel = async function(id) { 
       if (confirm("Dersi iptal edip öğrenciye hakkını iade etmek istediğinize emin misiniz?")) { 
           loading(true); 
-          const sRef = doc(db, "slots", id); 
-          const sDoc = await getDoc(sRef);
-          
-          if(!sDoc.exists()) { loading(false); return; }
-          const sD = sDoc.data(); 
-          
-          if (sD.ogrenci.includes("İPTAL")) {
-              alert("Bu ders zaten iptal edilmiş! Çift tıklama algılandı.");
-              loading(false);
-              return;
-          }
+          try {
+              const sRef = doc(db, "slots", id); 
+              const sDoc = await getDoc(sRef);
+              
+              if(!sDoc.exists()) { loading(false); return; }
+              const sD = sDoc.data(); 
+              
+              if (sD.ogrenci.includes("İPTAL")) {
+                  alert("Bu ders zaten iptal edilmiş! Çift tıklama algılandı.");
+                  loading(false);
+                  return;
+              }
 
-          const ogr = sD.ogrenci.split(" (")[0].trim(); 
-          await updateDoc(sRef, { ogrenci: `${ogr} (İPTAL) - ${getSuan()}` }); 
-          
-          const uRef = doc(db, "users", ogr); 
-          const uDoc = await getDoc(uRef); 
-          if(uDoc.exists()) {
-              const uD = uDoc.data(); 
-              await updateDoc(uRef, { hak: uD.hak + 1, log: `+1 hak | ${getSuan()} | İptal\n${uD.log||""}` }); 
+              const ogr = sD.ogrenci.split(" (")[0].trim(); 
+              await updateDoc(sRef, { ogrenci: `${ogr} (İPTAL) - ${getSuan()}` }); 
+              
+              const uRef = doc(db, "users", ogr); 
+              const uDoc = await getDoc(uRef); 
+              if(uDoc.exists()) {
+                  const uD = uDoc.data(); 
+                  // MATEMATİK ZIRHI: Metin gelse bile zorla sayıya çevir
+                  const eskiHak = parseInt(uD.hak) || 0; 
+                  const yeniHak = eskiHak + 1;
+                  await updateDoc(uRef, { hak: yeniHak, log: `+1 hak | ${getSuan()} | İptal\n${uD.log||""}` }); 
+                  alert(`Ders başarıyla iptal edildi.\n${ogr} adlı öğrencinin hesabına 1 hak geri yüklendi.\nGüncel Hak: ${yeniHak}`);
+              } else {
+                  alert("Ders iptal edildi ancak öğrenci veritabanında bulunamadığı için hak iade edilemedi!");
+              }
+          } catch(e) {
+              alert("İşlem sırasında hata oluştu: " + e.message);
           }
-          
           await window.load(); 
           loading(false); 
       } 
   }
   
-  window.addHakBtn = async function(n) { const h = prompt(n + " için kaç hak?"); if(!h) return; loading(true); const uRef = doc(db, "users", n); const d = (await getDoc(uRef)).data(); await updateDoc(uRef, { hak: d.hak + parseInt(h), log: `+${h} hak | ${getSuan()}\n${d.log||""}` }); await window.load(); loading(false); }
+  window.addHakBtn = async function(n) { 
+      const h = prompt(n + " için kaç hak eklenecek?"); 
+      if(!h) return; 
+      const eklenecek = parseInt(h);
+      if(isNaN(eklenecek) || eklenecek <= 0) return alert("Lütfen geçerli bir sayı giriniz!");
+      loading(true); 
+      const uRef = doc(db, "users", n); 
+      const uDoc = await getDoc(uRef); 
+      if(uDoc.exists()) {
+          const d = uDoc.data(); 
+          const mevcut = parseInt(d.hak) || 0;
+          await updateDoc(uRef, { hak: mevcut + eklenecek, log: `+${eklenecek} hak | ${getSuan()}\n${d.log||""}` }); 
+      }
+      await window.load(); 
+      loading(false); 
+  }
+  
   window.sil = async function(id) { if(confirm("Silinsin mi?")) { loading(true); await deleteDoc(doc(db, "slots", id)); await window.load(); loading(false); } }
   window.adInit = function() { flatpickr("#adPick", {inline:true, locale:"tr", onChange:(d,s)=>{selProg=s; document.getElementById('addArea').style.display = 'block'; window.renderAll();}}); flatpickr("#donePick", {inline:true, locale:"tr", onChange:(d,s)=>{selDone=s; window.renderDone();}}); }
   window.openTimeModal = function() { document.getElementById('timeModal').style.display="flex"; }
@@ -379,7 +403,25 @@
   window.confirmTime = async function() { const t = document.getElementById('tS').value.replace(':','.') + "-" + document.getElementById('tE').value.replace(':','.'); window.closeTimeModal(); loading(true); await addDoc(collection(db, "slots"), { tarih: selProg.split('-').reverse().join('.'), isoTarih: selProg, saat: t, ogrenci: "", hoca: currentHocaFilter, durum: "", konu: "", video: "" }); await window.load(); loading(false); }
   window.openOgrModal = function(id) { const sel = document.getElementById('ogrSelect'); sel.innerHTML = ""; students.filter(x => x.hoca === currentHocaFilter).forEach(x => sel.add(new Option(x.isim + " (Hak:"+x.hak+")", x.isim))); document.getElementById('tempRow').value = id; document.getElementById('ogrModal').style.display="flex"; }
   window.closeOgrModal = function() { document.getElementById('ogrModal').style.display="none"; }
-  window.confirmOgr = async function() { const n = document.getElementById('ogrSelect').value; const id = document.getElementById('tempRow').value; window.closeOgrModal(); loading(true); const uRef = doc(db, "users", n); const uD = (await getDoc(uRef)).data(); if(uD.hak <= 0) { alert("Hak yok!"); loading(false); return; } await updateDoc(uRef, { hak: uD.hak - 1, log: `-1 hak | ${getSuan()} | Ders Alındı\n${uD.log||""}` }); await updateDoc(doc(db, "slots", id), { ogrenci: n }); await window.load(); loading(false); }
+  
+  window.confirmOgr = async function() { 
+      const n = document.getElementById('ogrSelect').value; 
+      const id = document.getElementById('tempRow').value; 
+      window.closeOgrModal(); 
+      loading(true); 
+      const uRef = doc(db, "users", n); 
+      const uDoc = await getDoc(uRef); 
+      if(uDoc.exists()) { 
+          const uD = uDoc.data(); 
+          const mevcutHak = parseInt(uD.hak) || 0;
+          if(mevcutHak <= 0) { alert("Öğrencinin ders hakkı kalmamış!"); loading(false); return; } 
+          await updateDoc(uRef, { hak: mevcutHak - 1, log: `-1 hak | ${getSuan()} | Ders Alındı\n${uD.log||""}` }); 
+          await updateDoc(doc(db, "slots", id), { ogrenci: n }); 
+      }
+      await window.load(); 
+      loading(false); 
+  }
+  
   window.toggleUserFields = function() { const r = document.getElementById('newURole').value; document.getElementById('passGroup').style.display = r==='student' ? 'none' : 'block'; document.getElementById('studentGroup').style.display = r==='student' ? 'block' : 'none'; }
   
   window.openUserModal = function() { 
