@@ -25,6 +25,7 @@
     .modal { display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
     .modal-content { background:white; padding:20px; border-radius:20px; width:90%; max-width:400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
     #loader { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); padding:15px 30px; background:var(--p); color:white; border-radius:30px; font-weight:bold; z-index:999; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
+    .time-select { padding:12px; border-radius:8px; border:1px solid #e2e8f0; font-weight:bold; font-size:15px; outline:none; background:white; -webkit-appearance: none; text-align:center;}
   </style>
 </head>
 <body>
@@ -59,6 +60,7 @@
     <button id="adTabP" onclick="adSwitch('prog')">Program</button>
     <button onclick="adSwitch('hist')">Geçmiş</button>
     <button onclick="adSwitch('done')">Yapılanlar</button>
+    <button onclick="adSwitch('durum')">Öğrenci Durum</button>
     <button onclick="adSwitch('hak')">Öğrenciler</button>
     <button onclick="adSwitch('detay')">Ders Detay</button>
     <button onclick="adSwitch('hatirlat')">WP Hatırlat</button>
@@ -84,7 +86,11 @@
     <div id="detayList" style="max-height: 400px; overflow-y: auto;"></div>
   </div>
 
-  <!-- WP HATIRLAT SEKMESİ -->
+  <!-- ÖĞRENCİ DURUM SEKMESİ -->
+  <div id="adViewDurum" style="display:none;">
+    <div id="durumList" style="max-height: 500px; overflow-y: auto;"></div>
+  </div>
+
   <div id="adViewHatirlat" style="display:none;">
     <div style="background:#eef2ff; padding:15px; border-radius:10px; margin-bottom:15px; text-align:center;">
         <h3 style="margin:0; color:var(--p); font-size:16px;">Yarının Dersleri</h3>
@@ -99,14 +105,28 @@
 <!-- MODALLAR -->
 <div id="noteModal" class="modal"><div class="modal-content"><h3 style="text-align:center; color:var(--p); margin-top:0;">Ders Hakkında</h3><label style="font-size:13px; font-weight:bold; color:#64748b;">İşlenen Konu:</label><textarea id="nKonu" rows="4" style="margin-top:5px; margin-bottom:15px;"></textarea><label style="font-size:13px; font-weight:bold; color:#64748b;">Atılacak Video:</label><textarea id="nVideo" rows="3" style="margin-top:5px; margin-bottom:15px;"></textarea><input type="hidden" id="nRow"><button onclick="saveNoteBtn()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold;">Kaydet</button><button onclick="closeNoteModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b;">İptal</button></div></div>
 
-<div id="timeModal" class="modal"><div class="modal-content"><h3 style="text-align:center;">Ders Saati Belirle</h3><div style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:15px;"><input type="time" id="tS" style="flex:1; padding:12px; font-weight:bold;"> - <input type="time" id="tE" style="flex:1; padding:12px; font-weight:bold;"></div><button onclick="confirmTime()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px;">Kaydet ve Ekle</button><button onclick="closeTimeModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">Vazgeç</button></div></div>
+<!-- MOBİL UYUMLU SAAT MODALI -->
+<div id="timeModal" class="modal">
+  <div class="modal-content">
+    <h3 style="text-align:center; color:var(--p);">Ders Saati Belirle</h3>
+    <div style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:15px;">
+        <div style="display:flex; gap:2px; align-items:center;">
+            <select id="sh" class="time-select"></select><b style="color:var(--p)">:</b><select id="sm" class="time-select"></select>
+        </div>
+        <span style="font-weight:bold; color:#64748b; font-size:20px;">-</span>
+        <div style="display:flex; gap:2px; align-items:center;">
+            <select id="eh" class="time-select"></select><b style="color:var(--p)">:</b><select id="em" class="time-select"></select>
+        </div>
+    </div>
+    <button onclick="confirmTime()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold;">Kaydet ve Ekle</button>
+    <button onclick="closeTimeModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; font-weight:bold; color:#64748b;">Vazgeç</button>
+  </div>
+</div>
 
 <div id="ogrModal" class="modal"><div class="modal-content"><h3>Öğrenci Seç</h3><select id="ogrSelect" style="width:100%; padding:14px; margin-bottom:15px; border-radius:10px;"></select><input type="hidden" id="tempRow"><button onclick="confirmOgr()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px;">Öğrenciyi Yaz</button><button onclick="closeOgrModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">İptal</button></div></div>
 
-<!-- YENİ KULLANICI MODALI (TELEFON ZORUNLU) -->
 <div id="userModal" class="modal"><div class="modal-content"><h3>Yeni Kullanıcı Ekle</h3><select id="newURole" onchange="window.toggleUserFields()"><option value="student">Öğrenci</option><option value="admin">Hoca (Admin)</option><option value="super_admin">Süper Admin</option></select><input id="newUName" type="text" placeholder="Giriş Adı / İsim Soyisim"><div id="passGroup" style="display:none;"><input id="newUPass" type="text" placeholder="Şifre (Min 6 hane)"></div><div id="studentGroup"><input id="newUHak" type="number" placeholder="Ders Hakkı" value="0"><input id="newUTel" type="tel" placeholder="Telefon Numarası (Örn: 0555...) Zorunlu"><select id="newUHoca"></select></div><button onclick="saveNewUser()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; margin-top:10px;">Kaydet</button><button onclick="closeUserModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">İptal</button></div></div>
 
-<!-- ÖĞRENCİ DÜZENLEME MODALI (HARF HATASI, HAK, TELEFON DÜZELTME) -->
 <div id="editStudentModal" class="modal">
   <div class="modal-content">
     <h3 style="text-align:center; color:var(--p); margin-top:0;">Öğrenci Düzenle</h3>
@@ -169,6 +189,22 @@
   function loading(s) { document.getElementById('loader').style.display = s ? 'block' : 'none'; }
   function getSuan() { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
+  window.initTimeSelects = function() {
+      let hOpts = "";
+      for(let i=0; i<24; i++) {
+          let v = String(i).padStart(2,'0');
+          hOpts += `<option value='${v}'>${v}</option>`;
+      }
+      let mOpts = "<option value='00'>00</option><option value='15'>15</option><option value='30'>30</option><option value='45'>45</option>";
+      
+      ['sh', 'eh'].forEach(id => document.getElementById(id).innerHTML = hOpts);
+      ['sm', 'em'].forEach(id => document.getElementById(id).innerHTML = mOpts);
+      
+      document.getElementById('sh').value = "12";
+      document.getElementById('eh').value = "13";
+  }
+  window.initTimeSelects();
+
   onAuthStateChanged(auth, async (fbUser) => {
     if (fbUser) {
       const uDoc = await getDoc(doc(db, "users", fbUser.email));
@@ -202,7 +238,6 @@
         let rawU = []; uSnap.forEach(d => rawU.push({ id: d.id, ...d.data() }));
         
         admins = rawU.filter(u => u.role === "admin").map(u => u.id); 
-        // Öğrencileri çekerken artık telefonlarını da alıyoruz (eski kayıtlarda yoksa boş string olur)
         students = rawU.filter(u => u.role === "student").map(u => ({ 
             isim: u.id, 
             hak: parseInt(u.hak) || 0, 
@@ -243,7 +278,7 @@
   window.renderAll = function() {
     if (user) {
         currentHocaFilter = user.role === 'super_admin' ? (document.getElementById('hSelect').value || admins[0]) : user.name;
-        window.renderAdP(); window.renderAdH(); window.renderDone(); window.renderOgrList(); window.renderDetay(); window.renderHatirlat();
+        window.renderAdP(); window.renderAdH(); window.renderDone(); window.renderOgrList(); window.renderDetay(); window.renderHatirlat(); window.renderDurum();
     } else { window.renderPublic(); }
   }
 
@@ -262,8 +297,8 @@
   }
 
   window.adSwitch = function(t) {
-    ['P','H','D','Hak', 'Detay', 'Hatirlat'].forEach(v => document.getElementById('adView'+v).style.display = 'none');
-    document.getElementById('adView'+(t==='prog'?'P':t==='hist'?'H':t==='done'?'D':t==='hak'?'Hak':t==='detay'?'Detay':'Hatirlat')).style.display = 'block';
+    ['P','H','D','Hak', 'Detay', 'Hatirlat', 'Durum'].forEach(v => document.getElementById('adView'+v).style.display = 'none');
+    document.getElementById('adView'+(t==='prog'?'P':t==='hist'?'H':t==='done'?'D':t==='hak'?'Hak':t==='detay'?'Detay':t==='hatirlat'?'Hatirlat':'Durum')).style.display = 'block';
     window.renderAll();
   }
 
@@ -315,7 +350,6 @@
         </div>`).join('') || "<p style='text-align:center;'>Kayıt yok.</p>";
   }
 
-  // --- ÖĞRENCİ LİSTESİ (DÜZENLE BUTONU EKLENDİ) ---
   window.renderOgrList = function() {
     if (!document.getElementById('adViewHak') || document.getElementById('adViewHak').style.display === 'none') return;
     const s = document.getElementById('ogrSearch').value.toLowerCase();
@@ -382,16 +416,81 @@
     document.getElementById('detayList').innerHTML = html;
   }
 
-  // --- YARINKİ DERSLERİ BULUP WHATSAPP BUTONU ÇIKARTAN MOTOR ---
+  // --- ÖĞRENCİ DURUM MANTIK MOTORU (GÜNCELLENDİ: 14 GÜNLÜK PENCERE) ---
+  window.renderDurum = function() {
+      if (document.getElementById('adViewDurum').style.display === 'none') return;
+      
+      let ogrs = students.filter(x => x.hoca === currentHocaFilter);
+      let html = "";
+      
+      if (ogrs.length === 0) {
+          document.getElementById('durumList').innerHTML = "<p style='text-align:center;'>Kayıtlı öğrenci yok.</p>";
+          return;
+      }
+
+      let d = new Date();
+      d.setHours(0,0,0,0);
+      let day = d.getDay();
+      let diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      
+      let monday = new Date(d.setDate(diff));
+      
+      // BİTİŞ TARİHİNİ İKİ HAFTA SONRASI (SONRAKİ PAZAR) OLARAK AYARLADIK
+      let endOfNextWeek = new Date(monday);
+      endOfNextWeek.setDate(monday.getDate() + 13);
+      endOfNextWeek.setHours(23,59,59,999);
+
+      let olmayanlar = [];
+      let durumListHTML = "";
+
+      ogrs.forEach(o => {
+          let oSlots = slots.filter(s => s.hoca === currentHocaFilter && s.ogrenci && s.ogrenci.startsWith(o.isim) && !s.ogrenci.includes("İPTAL"));
+          
+          let past = oSlots.filter(s => window.checkT(s.tarih, s.saat) || s.durum === "TAMAMLANDI");
+          let future = oSlots.filter(s => !(window.checkT(s.tarih, s.saat) || s.durum === "TAMAMLANDI"));
+          
+          past.sort((a,b) => (b.tarih.split('.').reverse().join('')+b.saat).localeCompare(a.tarih.split('.').reverse().join('')+a.saat));
+          future.sort((a,b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat));
+
+          let lastL = past.length > 0 ? `${window.getPrettyDate(past[0].tarih)} - ${past[0].saat}` : "Hiç ders almadı";
+          let nextL = future.length > 0 ? `${window.getPrettyDate(future[0].tarih)} - ${future[0].saat}` : "Planlanmış ders yok";
+
+          // 14 günlük devasa pencereyi tarar
+          let hasPlanSoon = oSlots.some(s => {
+              let pts = s.isoTarih.split('-');
+              let sD = new Date(pts[0], pts[1]-1, pts[2]);
+              return sD >= monday && sD <= endOfNextWeek;
+          });
+
+          if (!hasPlanSoon) olmayanlar.push(o.isim);
+
+          durumListHTML += `
+          <div class="slot" style="flex-direction:column; align-items:flex-start; gap:5px;">
+              <b style="color:var(--p); font-size:15px;">${o.isim}</b>
+              <div style="font-size:12px; color:#475569;">
+                  <b>Son Ders:</b> <span style="color:#64748b;">${lastL}</span><br>
+                  <b>Sıradaki:</b> <span style="color:var(--s); font-weight:bold;">${nextL}</span>
+              </div>
+          </div>`;
+      });
+
+      html += `<div style="background:#fee2e2; padding:15px; border-radius:10px; margin-bottom:15px;">
+          <h3 style="margin:0 0 10px 0; color:#b91c1c; font-size:14px; text-align:center;">⚠️ YAKINLARDA DERS PLANI OLMAYANLAR ⚠️</h3>
+          ${olmayanlar.length > 0 ? olmayanlar.map(n => `<div style="padding:8px; background:white; margin-bottom:5px; border-radius:6px; font-size:13px; font-weight:bold; color:#b91c1c; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.1);">${n}</div>`).join('') : '<div style="text-align:center; font-size:13px; color:#15803d; font-weight:bold;">Tebrikler! Herkesin yakın zamanda planlanmış dersi var. 🎉</div>'}
+      </div>`;
+
+      html += `<h3 style="color:var(--p); font-size:14px; text-align:center; margin-top:20px;">Öğrenci Ders Takibi</h3>`;
+      html += durumListHTML;
+
+      document.getElementById('durumList').innerHTML = html;
+  }
+
   window.renderHatirlat = function() {
     if (document.getElementById('adViewHatirlat').style.display === 'none') return;
-    
-    // Sistemden "Yarın"ı bul
     const tmr = new Date();
     tmr.setDate(tmr.getDate() + 1);
     const tmrStr = `${String(tmr.getDate()).padStart(2,'0')}.${String(tmr.getMonth()+1).padStart(2,'0')}.${tmr.getFullYear()}`;
     
-    // Yarına ait aktif dersleri filtrele
     let tmrSlots = slots.filter(s => s.hoca === currentHocaFilter && s.tarih === tmrStr && s.ogrenci !== "" && !s.ogrenci.includes("İPTAL") && s.durum !== "TAMAMLANDI");
     tmrSlots = window.sortByTime(tmrSlots);
     
@@ -408,11 +507,9 @@
         
         let wpBtn = "";
         if(tel) {
-            // Telefon numarasını WhatsApp'ın sevdiği temiz formata çevir (Örn: 0555 -> 90555)
             let cleanTel = tel.replace(/\D/g,'');
             if(cleanTel.startsWith("0")) cleanTel = cleanTel.substring(1);
             if(cleanTel.length === 10) cleanTel = "90" + cleanTel; 
-            
             let msg = encodeURIComponent("Selamlar yarın dersimiz vardır bilginize.");
             wpBtn = `<a href="https://wa.me/${cleanTel}?text=${msg}" target="_blank" style="background:#25D366; color:white; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:12px; display:inline-block; box-shadow: 0 4px 6px rgba(37,211,102,0.2);">📱 Hatırlat</a>`;
         } else {
@@ -427,7 +524,6 @@
     }).join('');
   }
 
-  // --- ÖĞRENCİ DÜZENLEME (İSİM, TEL, HAK GÜNCELLEME) MOTORU ---
   window.openEditStudentModal = function(isim) {
       const std = students.find(s => s.isim === isim);
       if(!std) return;
@@ -455,7 +551,6 @@
           
           if(!oldDoc.exists()) { loading(false); return alert("Öğrenci veritabanında bulunamadı!"); }
 
-          // Eğer isimde harf hatası düzeltildiyse:
           if (oldName !== newName) {
               const newRef = doc(db, "users", newName);
               const checkNew = await getDoc(newRef);
@@ -464,27 +559,22 @@
                   loading(false); return;
               }
               
-              // 1. Yeni isimle döküman yaratıp eski verileri kopyala
               let data = oldDoc.data();
               data.hak = newHak;
               data.telefon = newTel;
               await setDoc(newRef, data);
               
-              // 2. Geçmişteki ve gelecekteki bütün slotlardaki adını güncelle
               const slotsSnap = await getDocs(collection(db, "slots"));
               for(let s of slotsSnap.docs) {
                   let sData = s.data();
-                  // İptal edilmiş hali veya normal hali eşleşiyorsa güncelle
                   if(sData.ogrenci === oldName || sData.ogrenci.startsWith(oldName + " (")) {
                       let updatedName = sData.ogrenci.replace(oldName, newName);
                       await updateDoc(doc(db, "slots", s.id), { ogrenci: updatedName });
                   }
               }
-              // 3. Eski isimli dökümanı sil
               await deleteDoc(oldRef);
               alert("Öğrencinin ismi, telefonu ve tüm ders kayıtları başarıyla güncellendi!");
           } else {
-              // Sadece hak veya telefon değiştiyse:
               await updateDoc(oldRef, { telefon: newTel, hak: newHak });
               alert("Öğrenci bilgileri başarıyla güncellendi!");
           }
@@ -550,7 +640,14 @@
   window.adInit = function() { flatpickr("#adPick", {inline:true, locale:"tr", onChange:(d,s)=>{selProg=s; document.getElementById('addArea').style.display = 'block'; window.renderAll();}}); flatpickr("#donePick", {inline:true, locale:"tr", onChange:(d,s)=>{selDone=s; window.renderDone();}}); }
   window.openTimeModal = function() { document.getElementById('timeModal').style.display="flex"; }
   window.closeTimeModal = function() { document.getElementById('timeModal').style.display="none"; }
-  window.confirmTime = async function() { const t = document.getElementById('tS').value.replace(':','.') + "-" + document.getElementById('tE').value.replace(':','.'); window.closeTimeModal(); loading(true); await addDoc(collection(db, "slots"), { tarih: selProg.split('-').reverse().join('.'), isoTarih: selProg, saat: t, ogrenci: "", hoca: currentHocaFilter, durum: "", konu: "", video: "" }); await window.load(); loading(false); }
+  window.confirmTime = async function() { 
+      const sh = document.getElementById('sh').value;
+      const sm = document.getElementById('sm').value;
+      const eh = document.getElementById('eh').value;
+      const em = document.getElementById('em').value;
+      const t = `${sh}.${sm}-${eh}.${em}`;
+      window.closeTimeModal(); loading(true); await addDoc(collection(db, "slots"), { tarih: selProg.split('-').reverse().join('.'), isoTarih: selProg, saat: t, ogrenci: "", hoca: currentHocaFilter, durum: "", konu: "", video: "" }); await window.load(); loading(false); 
+  }
   window.openOgrModal = function(id) { const sel = document.getElementById('ogrSelect'); sel.innerHTML = ""; students.filter(x => x.hoca === currentHocaFilter).forEach(x => sel.add(new Option(x.isim + " (Hak:"+x.hak+")", x.isim))); document.getElementById('tempRow').value = id; document.getElementById('ogrModal').style.display="flex"; }
   window.closeOgrModal = function() { document.getElementById('ogrModal').style.display="none"; }
   window.confirmOgr = async function() { const n = document.getElementById('ogrSelect').value; const id = document.getElementById('tempRow').value; window.closeOgrModal(); loading(true); const uRef = doc(db, "users", n); const uD = (await getDoc(uRef)).data(); if(uD.hak <= 0) { alert("Hak yok!"); loading(false); return; } await updateDoc(uRef, { hak: uD.hak - 1, log: `-1 hak | ${getSuan()} | Ders Alındı\n${uD.log||""}` }); await updateDoc(doc(db, "slots", id), { ogrenci: n }); await window.load(); loading(false); }
@@ -558,7 +655,7 @@
   
   window.openUserModal = function() { 
       if (user.role !== 'super_admin') return alert("Sadece Süper Adminler kullanıcı ekleyebilir!");
-      document.getElementById('newUTel').value = ""; // Formu temizle
+      document.getElementById('newUTel').value = ""; 
       const sel = document.getElementById('newUHoca'); sel.innerHTML = ""; 
       admins.forEach(a => sel.add(new Option(a, a))); 
       document.getElementById('userModal').style.display="flex"; 
@@ -570,7 +667,6 @@
       const n = document.getElementById('newUName').value.trim(); 
       loading(true); 
       if(r === 'student') { 
-          // TELEFON ZORUNLULUĞU
           const uTel = document.getElementById('newUTel').value.trim();
           if(!uTel) { alert("Öğrenci kaydı için telefon numarası zorunludur!"); loading(false); return; }
           
@@ -588,7 +684,6 @@
       } 
       window.closeUserModal(); await window.load(); loading(false); 
   }
-  
   window.openNoteModal = function(id, k, v) { document.getElementById('nRow').value = id; document.getElementById('nKonu').value = decodeURIComponent(k); document.getElementById('nVideo').value = decodeURIComponent(v); document.getElementById('noteModal').style.display = "flex"; }
   window.closeNoteModal = function() { document.getElementById('noteModal').style.display = "none"; }
   window.saveNoteBtn = async function() { const id = document.getElementById('nRow').value; loading(true); await updateDoc(doc(db, "slots", id), { konu: document.getElementById('nKonu').value, video: document.getElementById('nVideo').value }); window.closeNoteModal(); await window.load(); loading(false); }
