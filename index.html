@@ -86,7 +86,6 @@
     <div id="detayList" style="max-height: 400px; overflow-y: auto;"></div>
   </div>
 
-  <!-- ÖĞRENCİ DURUM SEKMESİ -->
   <div id="adViewDurum" style="display:none;">
     <div id="durumList" style="max-height: 500px; overflow-y: auto;"></div>
   </div>
@@ -105,7 +104,6 @@
 <!-- MODALLAR -->
 <div id="noteModal" class="modal"><div class="modal-content"><h3 style="text-align:center; color:var(--p); margin-top:0;">Ders Hakkında</h3><label style="font-size:13px; font-weight:bold; color:#64748b;">İşlenen Konu:</label><textarea id="nKonu" rows="4" style="margin-top:5px; margin-bottom:15px;"></textarea><label style="font-size:13px; font-weight:bold; color:#64748b;">Atılacak Video:</label><textarea id="nVideo" rows="3" style="margin-top:5px; margin-bottom:15px;"></textarea><input type="hidden" id="nRow"><button onclick="saveNoteBtn()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold;">Kaydet</button><button onclick="closeNoteModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b;">İptal</button></div></div>
 
-<!-- MOBİL UYUMLU SAAT MODALI -->
 <div id="timeModal" class="modal">
   <div class="modal-content">
     <h3 style="text-align:center; color:var(--p);">Ders Saati Belirle</h3>
@@ -302,6 +300,7 @@
     window.renderAll();
   }
 
+  // PROGRAM SEKMESİ: TEKİL FIXLE BUTONU KALDIRILDI
   window.renderAdP = function() {
     const f = window.sortByTime(slots.filter(s => s.hoca === currentHocaFilter && s.isoTarih === selProg));
     document.getElementById('adList').innerHTML = f.map(s => {
@@ -350,6 +349,7 @@
         </div>`).join('') || "<p style='text-align:center;'>Kayıt yok.</p>";
   }
 
+  // --- ÖĞRENCİLER SEKMESİ: ÖĞRENCİ BAZLI FİXLE BUTONU EKLENDİ ---
   window.renderOgrList = function() {
     if (!document.getElementById('adViewHak') || document.getElementById('adViewHak').style.display === 'none') return;
     const s = document.getElementById('ogrSearch').value.toLowerCase();
@@ -361,7 +361,8 @@
               <b style="color:var(--p);">${x.isim}</b><br>
               <small>Hak: <b style="color:var(--c);">${x.hak}</b> | Tel: ${x.telefon || '<span style="color:#ef4444">Yok</span>'}</small>
           </div>
-          <div style="display:flex; gap:5px;">
+          <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end;">
+              <button onclick="handleFixleStudent('${x.isim}')" class="btn-act" style="background:#3b82f6;" title="Takvimde seçili haftadaki derslerini ileriye şablonla">Fixle</button>
               <button onclick="openEditStudentModal('${x.isim}')" class="btn-act" style="background:#f59e0b;">Düzenle</button>
               <button onclick="addHakBtn('${x.isim}')" class="btn-act" style="background:var(--s)">+ Hak</button>
           </div>
@@ -416,7 +417,6 @@
     document.getElementById('detayList').innerHTML = html;
   }
 
-  // --- ÖĞRENCİ DURUM MANTIK MOTORU (GÜNCELLENDİ: 14 GÜNLÜK PENCERE) ---
   window.renderDurum = function() {
       if (document.getElementById('adViewDurum').style.display === 'none') return;
       
@@ -435,7 +435,6 @@
       
       let monday = new Date(d.setDate(diff));
       
-      // BİTİŞ TARİHİNİ İKİ HAFTA SONRASI (SONRAKİ PAZAR) OLARAK AYARLADIK
       let endOfNextWeek = new Date(monday);
       endOfNextWeek.setDate(monday.getDate() + 13);
       endOfNextWeek.setHours(23,59,59,999);
@@ -455,7 +454,6 @@
           let lastL = past.length > 0 ? `${window.getPrettyDate(past[0].tarih)} - ${past[0].saat}` : "Hiç ders almadı";
           let nextL = future.length > 0 ? `${window.getPrettyDate(future[0].tarih)} - ${future[0].saat}` : "Planlanmış ders yok";
 
-          // 14 günlük devasa pencereyi tarar
           let hasPlanSoon = oSlots.some(s => {
               let pts = s.isoTarih.split('-');
               let sD = new Date(pts[0], pts[1]-1, pts[2]);
@@ -522,6 +520,91 @@
             ${wpBtn}
         </div>`;
     }).join('');
+  }
+
+  // --- YENİ ÖĞRENCİ BAZLI FİXLE (HAFTALIK ŞABLON) MOTORU ---
+  window.handleFixleStudent = async function(ogrName) {
+      if (!confirm(`DİKKAT:\n\n${ogrName} adlı öğrencinin takvimde seçili olan haftadaki (${selProg} haftası) BÜTÜN dersleri kopyalanacak.\nÖğrencinin kalan ders hakkı bitene kadar önümüzdeki haftalara aynı gün ve saatte şablon olarak eklenecek.\n\nOnaylıyor musunuz?`)) return;
+      
+      loading(true);
+      try {
+          const uRef = doc(db, "users", ogrName);
+          const uDoc = await getDoc(uRef);
+          if(!uDoc.exists()) { loading(false); return alert("Öğrenci bulunamadı!"); }
+          
+          const uD = uDoc.data();
+          const mevcutHak = parseInt(uD.hak) || 0;
+          if(mevcutHak <= 0) { loading(false); return alert("Öğrencinin fixlemek için ders hakkı kalmamış!"); }
+
+          // Seçili günün (selProg) olduğu Pazartesi ve Pazar'ı bul
+          const pts = selProg.split("-");
+          let baseD = new Date(pts[0], pts[1]-1, pts[2]);
+          let day = baseD.getDay();
+          let diff = baseD.getDate() - day + (day === 0 ? -6 : 1);
+          let monday = new Date(baseD.setDate(diff));
+          monday.setHours(0,0,0,0);
+          let sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+          sunday.setHours(23,59,59,999);
+
+          // Öğrencinin o seçili haftadaki tüm derslerini çek
+          let weekSlots = slots.filter(s => {
+              if(s.hoca !== currentHocaFilter || !s.ogrenci.startsWith(ogrName) || s.ogrenci.includes("İPTAL")) return false;
+              let sPts = s.isoTarih.split('-');
+              let sDate = new Date(sPts[0], sPts[1]-1, sPts[2]);
+              return sDate >= monday && sDate <= sunday;
+          });
+
+          if(weekSlots.length === 0) {
+              loading(false);
+              return alert(`HATA: ${ogrName} adlı öğrencinin takvimde seçili olan haftada hiç dersi yok!\n\nLütfen önce 'Program' sekmesine gidip, bu hafta için öğrencinin şablon olmasını istediğiniz derslerini oluşturun.`);
+          }
+
+          // Dersleri kronolojik sıraya diz (Pazartesi, Cuma vb sırayla kopyalamak için)
+          weekSlots.sort((a,b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat));
+
+          let kalanHak = mevcutHak;
+          let createdCount = 0;
+          let weekOffset = 1;
+
+          while(kalanHak > 0) {
+              for (let baseSlot of weekSlots) {
+                  if (kalanHak <= 0) break; // Hak bittiyse döngüden çık
+                  
+                  let bPts = baseSlot.isoTarih.split('-');
+                  let d = new Date(bPts[0], bPts[1]-1, bPts[2]);
+                  // x hafta sonrasına git
+                  d.setDate(d.getDate() + (weekOffset * 7));
+                  
+                  let g = String(d.getDate()).padStart(2, '0');
+                  let a = String(d.getMonth() + 1).padStart(2, '0');
+                  let y = d.getFullYear();
+                  let yeniTarih = `${g}.${a}.${y}`;
+                  let yeniIso = `${y}-${a}-${g}`;
+
+                  await addDoc(collection(db, "slots"), { 
+                      tarih: yeniTarih, 
+                      isoTarih: yeniIso, 
+                      saat: baseSlot.saat, 
+                      ogrenci: ogrName, 
+                      hoca: baseSlot.hoca, 
+                      durum: "", 
+                      konu: "", 
+                      video: "" 
+                  });
+                  
+                  createdCount++;
+                  kalanHak--;
+              }
+              weekOffset++;
+          }
+
+          await updateDoc(uRef, { hak: kalanHak, log: `-${mevcutHak - kalanHak} hak | ${getSuan()} | Öğrenci Bazlı Fixle (${createdCount} ders)\n${uD.log||""}` });
+          alert(`SÜPER!\nÖğrencinin bu haftaki ${weekSlots.length} adet dersi şablon alındı.\nİleriye dönük tam ${createdCount} adet ders başarıyla oluşturuldu.\nÖğrencinin Kalan Hakkı: ${kalanHak}`);
+
+      } catch(e) { alert("Hata oluştu: " + e.message); }
+      await window.load();
+      loading(false);
   }
 
   window.openEditStudentModal = function(isim) {
