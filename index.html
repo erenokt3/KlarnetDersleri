@@ -12,18 +12,18 @@
     .nav { display: flex; gap: 5px; margin-bottom: 20px; background: #f1f5f9; padding: 4px; border-radius: 10px; flex-wrap: wrap; }
     .nav button { flex: 1; padding: 10px 5px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; color: #64748b; background: transparent; font-size: 10px; min-width: 60px; }
     .nav button.active { background: white; color: var(--p); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .slot { display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 10px; border: 1px solid #f1f5f9; margin-bottom: 8px; font-size: 14px; }
+    .slot { display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 10px; border: 1px solid #f1f5f9; margin-bottom: 8px; font-size: 14px; background: white; }
     .slot-past { opacity: 0.5; background: #f8fafc; border-left: 5px solid #cbd5e1; }
     .badge { font-size: 11px; padding: 5px 10px; border-radius: 6px; font-weight: bold; text-align: center; }
     .b-red { background: #fee2e2; color: #b91c1c; }
     .b-green { background: #dcfce7; color: #15803d; }
     .b-blue { background: #dbeafe; color: #1e40af; }
     input, select, textarea { width: 100%; padding: 14px; margin: 8px 0; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; outline: none; font-size: 15px; font-family: inherit; }
-    button.btn-act { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 12px; }
+    button.btn-act { padding: 8px 10px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; color: white; font-size: 11px; white-space: nowrap; }
     .btn-sil { background: #fee2e2; color: var(--c); border: 1px solid #fecaca; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 10px; }
     .flatpickr-calendar.inline { margin: 0 auto; box-shadow: none !important; border: 1px solid #e2e8f0; }
     .modal { display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
-    .modal-content { background:white; padding:20px; border-radius:20px; width:90%; max-width:400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .modal-content { background:white; padding:20px; border-radius:20px; width:90%; max-width:400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto; }
     #loader { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); padding:15px 30px; background:var(--p); color:white; border-radius:30px; font-weight:bold; z-index:999; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
     .time-select { padding:12px; border-radius:8px; border:1px solid #e2e8f0; font-weight:bold; font-size:15px; outline:none; background:white; -webkit-appearance: none; text-align:center;}
   </style>
@@ -32,6 +32,7 @@
 
 <div id="loader">İşleniyor...</div>
 
+<!-- ================= ZİYARETÇİ EKRANI ================= -->
 <div class="card" id="publicBox" style="display:block;">
   <div style="text-align:center; margin-bottom:20px;">
     <h1 style="margin:0; font-size:24px; color:var(--p); font-weight:800;">EREN OKAT</h1>
@@ -39,19 +40,24 @@
   </div>
   <input type="text" id="publicPick" style="display:none;">
   <div id="publicList" style="margin-top:15px;"></div>
-  <button onclick="showLogin()" style="width:100%; margin-top:25px; padding:12px; border:none; background:#e2e8f0; color:#475569; border-radius:10px; font-weight:bold; cursor:pointer;">Hoca Girişi</button>
+  <button onclick="showLogin()" style="width:100%; margin-top:25px; padding:12px; border:none; background:#e2e8f0; color:#475569; border-radius:10px; font-weight:bold; cursor:pointer;">Hoca / Öğrenci Girişi</button>
 </div>
 
+<!-- ================= GİRİŞ EKRANI ================= -->
 <div class="card" id="loginBox" style="display:none;">
   <div style="text-align:center; margin-bottom:30px;">
     <h1 style="margin:0; font-size:24px; color:var(--p); font-weight:800;">GÜVENLİ GİRİŞ</h1>
   </div>
-  <input id="u" type="email" placeholder="E-posta Adresi">
+  <input id="u" type="text" placeholder="E-posta veya Kullanıcı Adı">
   <input id="p" type="password" placeholder="Şifre">
   <button onclick="loginAuth()" style="width:100%; padding:16px; background:var(--p); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:10px; cursor:pointer;">Giriş Yap</button>
-  <center><button onclick="hideLogin()" style="background:none; border:none; color:#64748b; cursor:pointer; margin-top:15px; text-decoration:underline;">Geri Dön</button></center>
+  <div style="display:flex; justify-content:space-between; margin-top:15px; font-size:13px;">
+      <button onclick="forgotPassword()" style="background:none; border:none; color:var(--p); cursor:pointer; font-weight:bold;">Şifremi Unuttum</button>
+      <button onclick="hideLogin()" style="background:none; border:none; color:#64748b; cursor:pointer; text-decoration:underline;">Geri Dön</button>
+  </div>
 </div>
 
+<!-- ================= HOCA (ADMIN) PANELİ ================= -->
 <div class="card" id="adminBox" style="display:none;">
   <div class="status-bar" id="adStatus"></div>
   <select id="hSelect" style="display:none; border:2px solid var(--p); font-weight:bold; color:var(--p); width:100%; padding:10px; border-radius:10px; margin-bottom:15px;" onchange="renderAll()"></select>
@@ -64,6 +70,8 @@
     <button onclick="adSwitch('hak')">Öğrenciler</button>
     <button onclick="adSwitch('detay')">Ders Detay</button>
     <button onclick="adSwitch('hatirlat')">WP Hatırlat</button>
+    <button onclick="adSwitch('odeme')" style="color:var(--s);">Ödemeler</button>
+    <button onclick="adSwitch('profil')" style="color:var(--p);">Hesap Bilgileri</button>
     <button id="btnKullaniciEkle" onclick="openUserModal()" style="display:none; background:var(--p); color:white; flex: 100%; margin-top:5px; font-weight:bold;">+ Yeni Kullanıcı Ekle</button>
   </div>
   
@@ -98,10 +106,75 @@
     <div id="hatirlatList" style="max-height: 400px; overflow-y: auto;"></div>
   </div>
 
+  <div id="adViewOdeme" style="display:none;">
+    <div style="background:#dcfce7; padding:15px; border-radius:10px; margin-bottom:15px; text-align:center;">
+        <h3 style="margin:0; color:#15803d; font-size:16px;">Bekleyen Ödemeler & Dekontlar</h3>
+    </div>
+    <div id="odemeList" style="max-height: 400px; overflow-y: auto;"></div>
+  </div>
+
+  <div id="adViewProfil" style="display:none;">
+    <div style="background:white; padding:20px; border-radius:10px; border:1px solid #e2e8f0;">
+        <h3 style="margin-top:0; color:var(--p);">Hesap Bilgileri</h3>
+        <p style="font-size:14px;"><b>Kullanıcı Adı / E-posta:</b> <span id="adProfEmail"></span></p>
+        <p style="font-size:14px;"><b>Mevcut Şifre:</b> <span id="adProfPass">********</span></p>
+        <hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">
+        <h4 style="margin:0 0 10px 0; color:#334155;">Şifremi Yenile</h4>
+        <input type="text" id="adNewPass" placeholder="Yeni Şifre Belirle (Min 6 hane)">
+        <button onclick="changeMyPassword('adNewPass')" class="btn-act" style="background:var(--s); width:100%; padding:12px; margin-top:5px;">Şifreyi Güncelle</button>
+    </div>
+  </div>
+
   <button onclick="logoutAuth()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#64748b; color:white; border-radius:10px; cursor:pointer;">Sistemden Çıkış Yap</button>
 </div>
 
-<!-- MODALLAR -->
+<!-- ================= ÖĞRENCİ (STUDENT) PANELİ ================= -->
+<div class="card" id="studentBox" style="display:none;">
+  <div class="status-bar" id="stStatus"></div>
+  
+  <div class="nav">
+    <button id="stTabProg" onclick="stSwitch('prog')">Ders Programı</button>
+    <button onclick="stSwitch('hist')">Geçmiş Derslerim</button>
+    <button onclick="stSwitch('buy')" style="background:#fef3c7; color:#d97706;">Ders Hakkı Satın Al</button>
+    <button onclick="stSwitch('profil')" style="color:var(--p);">Hesap Bilgileri</button>
+  </div>
+
+  <div id="stViewProg" style="display:none;">
+    <input type="text" id="stPick">
+    <div id="stList" style="margin-top:15px;"></div>
+  </div>
+
+  <div id="stViewHist" style="display:none;">
+    <div id="stHistList" style="max-height: 400px; overflow-y: auto;"></div>
+  </div>
+
+  <div id="stViewBuy" style="display:none;">
+    <div style="background:#fff7ed; padding:15px; border-radius:10px; margin-bottom:15px; text-align:center; border:1px solid #ffedd5;">
+        <h3 style="margin:0 0 10px 0; color:#c2410c;">Ders Hakkı Satın Al</h3>
+        <p style="font-size:13px; color:#9a3412; margin:0;">Ödeme dekontunuzu (Fotoğraf veya PDF) aşağıdan yükleyiniz. Hocanız onayladığında ders haklarınız eklenecektir.</p>
+    </div>
+    <label style="font-size:13px; font-weight:bold; color:#64748b;">Dekont Seç (Fotoğraf veya PDF):</label>
+    <input type="file" id="dekontFile" accept="image/*,application/pdf" style="padding:10px; background:white; margin-bottom:15px;">
+    <button onclick="uploadDekont()" style="width:100%; padding:14px; background:#f59e0b; color:white; border:none; border-radius:10px; font-weight:bold; font-size:15px; cursor:pointer;">Dekontu Gönder</button>
+  </div>
+
+  <div id="stViewProfil" style="display:none;">
+    <div style="background:white; padding:20px; border-radius:10px; border:1px solid #e2e8f0;">
+        <h3 style="margin-top:0; color:var(--p);">Hesap Bilgileri</h3>
+        <p style="font-size:14px;"><b>Öğrenci Adı:</b> <span id="stProfName"></span></p>
+        <p style="font-size:14px;"><b>Kullanıcı Adı:</b> <span id="stProfUsername"></span></p>
+        <p style="font-size:14px;"><b>Mevcut Şifre:</b> <span id="stProfPass"></span></p>
+        <hr style="border:0; border-top:1px dashed #cbd5e1; margin:15px 0;">
+        <h4 style="margin:0 0 10px 0; color:#334155;">Şifremi Yenile</h4>
+        <input type="text" id="stNewPass" placeholder="Yeni Şifre Belirle (Min 6 hane)">
+        <button onclick="changeMyPassword('stNewPass')" class="btn-act" style="background:var(--s); width:100%; padding:12px; margin-top:5px;">Şifreyi Güncelle</button>
+    </div>
+  </div>
+
+  <button onclick="logoutAuth()" style="width:100%; margin-top:20px; padding:12px; border:none; background:#64748b; color:white; border-radius:10px; cursor:pointer;">Sistemden Çıkış Yap</button>
+</div>
+
+<!-- ================= MODALLAR ================= -->
 <div id="noteModal" class="modal"><div class="modal-content"><h3 style="text-align:center; color:var(--p); margin-top:0;">Ders Hakkında</h3><label style="font-size:13px; font-weight:bold; color:#64748b;">İşlenen Konu:</label><textarea id="nKonu" rows="4" style="margin-top:5px; margin-bottom:15px;"></textarea><label style="font-size:13px; font-weight:bold; color:#64748b;">Atılacak Video:</label><textarea id="nVideo" rows="3" style="margin-top:5px; margin-bottom:15px;"></textarea><input type="hidden" id="nRow"><button onclick="saveNoteBtn()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold;">Kaydet</button><button onclick="closeNoteModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b;">İptal</button></div></div>
 
 <div id="timeModal" class="modal">
@@ -125,6 +198,7 @@
 
 <div id="userModal" class="modal"><div class="modal-content"><h3>Yeni Kullanıcı Ekle</h3><select id="newURole" onchange="window.toggleUserFields()"><option value="student">Öğrenci</option><option value="admin">Hoca (Admin)</option><option value="super_admin">Süper Admin</option></select><input id="newUName" type="text" placeholder="Giriş Adı / İsim Soyisim"><div id="passGroup" style="display:none;"><input id="newUPass" type="text" placeholder="Şifre (Min 6 hane)"></div><div id="studentGroup"><input id="newUHak" type="number" placeholder="Ders Hakkı" value="0"><input id="newUTel" type="tel" placeholder="Telefon Numarası (Örn: 0555...) Zorunlu"><select id="newUHoca"></select></div><button onclick="saveNewUser()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; margin-top:10px;">Kaydet</button><button onclick="closeUserModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer;">İptal</button></div></div>
 
+<!-- ÖĞRENCİ DÜZENLE MODALI (KULLANICI ADI, ŞİFRE VE SİLME EKLENDİ) -->
 <div id="editStudentModal" class="modal">
   <div class="modal-content">
     <h3 style="text-align:center; color:var(--p); margin-top:0;">Öğrenci Düzenle</h3>
@@ -135,9 +209,21 @@
     <input id="editTel" type="tel" placeholder="Örn: 0555...">
     <label style="font-size:12px; color:#64748b; font-weight:bold;">Mevcut Ders Hakkı</label>
     <input id="editHak" type="number" placeholder="Hak Sayısı">
-    <button onclick="saveEditStudent()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:15px;">Güncelle</button>
+    
+    <div style="background:#f1f5f9; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #cbd5e1;">
+        <label style="font-size:12px; color:var(--p); font-weight:bold;">Öğrenci Giriş Bilgileri (Kullanıcı Adı & Şifre)</label>
+        <input id="editKullanici" type="text" placeholder="Kullanıcı Adı Belirle">
+        <input id="editKullaniciPass" type="text" placeholder="Şifre Belirle (Min 6 hane)">
+    </div>
+
+    <button onclick="saveEditStudent()" style="width:100%; padding:14px; background:var(--s); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:15px; cursor:pointer;">Güncelle</button>
+    <button onclick="deleteStudentFromModal()" style="width:100%; padding:12px; background:var(--c); color:white; border:none; border-radius:10px; font-weight:bold; margin-top:8px; cursor:pointer;">Öğrenciyi Sil</button>
     <button onclick="closeEditStudentModal()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer; color:#64748b;">İptal</button>
   </div>
+</div>
+
+<div id="imageModal" class="modal" onclick="this.style.display='none'">
+    <img id="enlargedImage" src="" style="max-width:90%; max-height:90%; border-radius:10px; object-fit:contain;">
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -145,8 +231,8 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAN-T2_6KFAmvQYkaWvO4Oue8FKpYF_IJk",
@@ -163,8 +249,8 @@
   const secondaryApp = initializeApp(firebaseConfig, "Secondary");
   const secondaryAuth = getAuth(secondaryApp);
 
-  let user = null, slots = [], admins = [], students = [];
-  let selProg = "", selDone = "", currentHocaFilter = "", selPublicProg = "";
+  let user = null, slots = [], admins = [], students = [], payments = [];
+  let selProg = "", selDone = "", currentHocaFilter = "", selPublicProg = "", selStProg = "";
 
   const G_ISIM = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
   const AYLAR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
@@ -203,28 +289,58 @@
   }
   window.initTimeSelects();
 
+  window.getLoc = function() { return (typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.tr) ? "tr" : "default"; };
+
   onAuthStateChanged(auth, async (fbUser) => {
     if (fbUser) {
-      const uDoc = await getDoc(doc(db, "users", fbUser.email));
-      if (uDoc.exists()) {
-        user = { name: fbUser.email, role: uDoc.data().role };
-        document.getElementById('publicBox').style.display = "none";
-        document.getElementById('loginBox').style.display = "none";
-        document.getElementById('adminBox').style.display = "block";
-        document.getElementById('adStatus').innerHTML = `<span>${user.name.split("@")[0].toUpperCase()}</span><b>${user.role === 'super_admin' ? 'SÜPER ADMİN' : 'HOCA'}</b>`;
-        
-        if(user.role === 'super_admin') { 
-            document.getElementById('hSelect').style.display = "block"; 
-            document.getElementById('btnKullaniciEkle').style.display = "block"; 
-        } else {
-            document.getElementById('hSelect').style.display = "none"; 
-            document.getElementById('btnKullaniciEkle').style.display = "none";
-        }
-        
-        window.adInit(); window.adSwitch('prog');
+      const email = fbUser.email || "";
+      if (email.endsWith('@ogrenci.sistem.com')) {
+          const kAdi = email.split('@')[0];
+          const q = query(collection(db, "users"), where("kullanici_adi", "==", kAdi));
+          const qSnap = await getDocs(q);
+          if (!qSnap.empty) {
+              const sDoc = qSnap.docs[0];
+              const sData = sDoc.data();
+              user = { name: sDoc.id, role: 'student', hoca: sData.sorumlu_hoca, hak: parseInt(sData.hak) || 0, kullanici_adi: kAdi, sifre: sData.sifre || "********" };
+              document.getElementById('publicBox').style.display = "none";
+              document.getElementById('loginBox').style.display = "none";
+              document.getElementById('adminBox').style.display = "none";
+              document.getElementById('studentBox').style.display = "block";
+              document.getElementById('stStatus').innerHTML = `<span>${user.name}</span><b>KALAN HAK: <span style="color:var(--c)">${user.hak}</span></b>`;
+              document.getElementById('stProfName').innerText = user.name;
+              document.getElementById('stProfUsername').innerText = user.kullanici_adi;
+              document.getElementById('stProfPass').innerText = user.sifre;
+              window.stInit(); window.stSwitch('prog');
+          } else { signOut(auth); window.publicInit(); }
+      } else {
+          const uDoc = await getDoc(doc(db, "users", email));
+          if (uDoc.exists()) {
+              user = { name: email, role: uDoc.data().role, sifre: uDoc.data().sifre || "********" };
+              document.getElementById('publicBox').style.display = "none";
+              document.getElementById('loginBox').style.display = "none";
+              document.getElementById('studentBox').style.display = "none";
+              document.getElementById('adminBox').style.display = "block";
+              document.getElementById('adStatus').innerHTML = `<span>${user.name.split("@")[0].toUpperCase()}</span><b>${user.role === 'super_admin' ? 'SÜPER ADMİN' : 'HOCA'}</b>`;
+              document.getElementById('adProfEmail').innerText = user.name;
+              document.getElementById('adProfPass').innerText = user.sifre;
+              
+              if(user.role === 'super_admin') { 
+                  document.getElementById('hSelect').style.display = "block"; 
+                  document.getElementById('btnKullaniciEkle').style.display = "block"; 
+              } else {
+                  document.getElementById('hSelect').style.display = "none"; 
+                  document.getElementById('btnKullaniciEkle').style.display = "none";
+              }
+              
+              window.adInit(); window.adSwitch('prog');
+          } else { signOut(auth); window.publicInit(); }
       }
     } else {
-      user = null; document.getElementById('adminBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; window.publicInit();
+      user = null;
+      document.getElementById('adminBox').style.display = "none";
+      document.getElementById('studentBox').style.display = "none";
+      document.getElementById('publicBox').style.display = "block";
+      window.publicInit();
     }
     window.load();
   });
@@ -240,8 +356,16 @@
             isim: u.id, 
             hak: parseInt(u.hak) || 0, 
             hoca: u.sorumlu_hoca,
-            telefon: u.telefon || ""
+            telefon: u.telefon || "",
+            kullanici_adi: u.kullanici_adi || "",
+            sifre: u.sifre || ""
         }));
+
+        if (user && (user.role === 'admin' || user.role === 'super_admin')) {
+            const pSnap = await getDocs(collection(db, "payments"));
+            payments = [];
+            pSnap.forEach(d => payments.push({ id: d.id, ...d.data() }));
+        }
         
         const now = new Date();
         slots = [];
@@ -270,19 +394,27 @@
             admins.forEach(a => hSelectBox.add(new Option(a.split('@')[0].toUpperCase(), a)));
         }
         window.renderAll();
-    } catch(e) {}
+    } catch(e) { window.renderAll(); }
   }
 
   window.renderAll = function() {
-    if (user) {
+    if (user && (user.role === 'admin' || user.role === 'super_admin')) {
         currentHocaFilter = user.role === 'super_admin' ? (document.getElementById('hSelect').value || admins[0]) : user.name;
-        window.renderAdP(); window.renderAdH(); window.renderDone(); window.renderOgrList(); window.renderDetay(); window.renderHatirlat(); window.renderDurum();
+        window.renderAdP(); window.renderAdH(); window.renderDone(); window.renderOgrList(); window.renderDetay(); window.renderHatirlat(); window.renderDurum(); window.renderPayments();
+    } else if (user && user.role === 'student') {
+        const me = students.find(s => s.isim === user.name);
+        if (me) {
+            user.hak = me.hak;
+            document.getElementById('stStatus').innerHTML = `<span>${user.name}</span><b>KALAN HAK: <span style="color:var(--c); font-size:16px;">${me.hak}</span></b>`;
+            document.getElementById('stProfPass').innerText = me.sifre || "********";
+        }
+        window.renderStP(); window.renderStH();
     } else { window.renderPublic(); }
   }
 
   window.publicInit = function() {
-    flatpickr.localize(flatpickr.l10ns.tr);
-    flatpickr("#publicPick", { inline: true, locale: "tr", defaultDate: "today", onChange: (d,s) => { selPublicProg = s; window.renderAll(); } });
+    if(typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.tr) flatpickr.localize(flatpickr.l10ns.tr);
+    flatpickr("#publicPick", { inline: true, locale: window.getLoc(), defaultDate: "today", onChange: (d,s) => { selPublicProg = s; window.renderAll(); } });
     if(!selPublicProg) { const t = new Date(); selPublicProg = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; }
   }
 
@@ -294,13 +426,215 @@
     listDiv.innerHTML = f.map(s => `<div class="slot"><b>${s.saat}</b>${s.ogrenci ? `<span class="badge b-red">DOLU</span>` : `<span class="badge b-green">BOŞ</span>`}</div>`).join('');
   }
 
-  window.adSwitch = function(t) {
-    ['P','H','D','Hak', 'Detay', 'Hatirlat', 'Durum'].forEach(v => document.getElementById('adView'+v).style.display = 'none');
-    document.getElementById('adView'+(t==='prog'?'P':t==='hist'?'H':t==='done'?'D':t==='hak'?'Hak':t==='detay'?'Detay':t==='hatirlat'?'Hatirlat':'Durum')).style.display = 'block';
+  // ================= ÖĞRENCİ FONKSİYONLARI =================
+  window.stInit = function() {
+    flatpickr("#stPick", { inline: true, locale: window.getLoc(), defaultDate: "today", onChange: (d,s) => { selStProg = s; window.renderAll(); } });
+    if(!selStProg) { const t = new Date(); selStProg = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; }
+  }
+
+  window.stSwitch = function(t) {
+    ['Prog','Hist','Buy','Profil'].forEach(v => document.getElementById('stView'+v).style.display = 'none');
+    document.getElementById('stView'+(t==='prog'?'Prog':t==='hist'?'Hist':t==='buy'?'Buy':'Profil')).style.display = 'block';
     window.renderAll();
   }
 
-  // PROGRAM SEKMESİ: TEKİL FIXLE BUTONU KALDIRILDI
+  window.renderStP = function() {
+    const f = window.sortByTime(slots.filter(s => s.hoca === user.hoca && s.isoTarih === selStProg && s.durum !== "TAMAMLANDI"));
+    document.getElementById('stList').innerHTML = f.map(s => {
+        let isMine = s.ogrenci === user.name;
+        let isEmpty = s.ogrenci === "" || s.ogrenci.includes("İPTAL");
+        let btn = "";
+        if (isMine) {
+            btn = `<button onclick="studentCancelSlot('${s.id}')" class="btn-act" style="background:var(--c)">İptal Et</button>`;
+        } else if (isEmpty) {
+            btn = `<button onclick="studentBookSlot('${s.id}')" class="btn-act" style="background:var(--s)">Dersi Al</button>`;
+        } else {
+            btn = `<span class="badge b-red">DOLU</span>`;
+        }
+        let desc = isMine ? `<span style="color:var(--s); font-weight:bold;">Sizin Dersiniz</span>` : (isEmpty ? "BOŞ" : "DOLU");
+        return `<div class="slot"><div><b>${s.saat}</b><br><small>${desc}</small></div>${btn}</div>`;
+    }).join('') || "<p style='text-align:center;'>Bu güne açılmış ders bulunmuyor.</p>";
+  }
+
+  window.renderStH = function() {
+    // 14.11.2026 ve sonrası filtresi
+    const cutoffDate = new Date(2026, 10, 14, 0, 0, 0);
+    const mySlots = window.sortByTime(slots.filter(s => {
+        if (s.ogrenci !== user.name) return false;
+        let p = s.tarih.split(".");
+        let sD = new Date(p[2], p[1]-1, p[0]);
+        return sD >= cutoffDate;
+    })).reverse();
+
+    document.getElementById('stHistList').innerHTML = mySlots.map(s => {
+        let textArray = [];
+        if (s.konu) textArray.push(`<b>Konu:</b> ${s.konu}`);
+        if (s.video) textArray.push(`<b>Video:</b> ${s.video}`);
+        const isPast = window.checkT(s.tarih, s.saat) || s.durum === "TAMAMLANDI";
+        return `<div class="slot" style="flex-direction:column; align-items:stretch; border-left:5px solid var(--p);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <b style="color:var(--p)">${window.getPrettyDate(s.tarih)} - ${s.saat}</b>
+                <span class="badge ${isPast?'b-green':'b-blue'}">${isPast?'BİTTİ':'AKTİF'}</span>
+            </div>
+            <div style="font-size:13px; color:#475569; white-space:pre-wrap;">${textArray.join('  |  ') || 'Not girilmedi.'}</div>
+        </div>`;
+    }).join('') || "<p style='text-align:center;'>14.11.2026 sonrası ders kaydınız bulunmuyor.</p>";
+  }
+
+  window.studentBookSlot = async function(id) {
+      const myDoc = await getDoc(doc(db, "users", user.name));
+      const currentHak = parseInt(myDoc.data().hak) || 0;
+      if (currentHak <= 0) {
+          alert("Ders hakkınız bitti hak satın alın");
+          window.stSwitch('buy');
+          return;
+      }
+      if (confirm("Bu dersi almak istediğinize emin misiniz?")) {
+          loading(true);
+          await updateDoc(doc(db, "users", user.name), { hak: currentHak - 1, log: `-1 hak | ${getSuan()} | Öğrenci Aldı\n${myDoc.data().log||""}` });
+          await updateDoc(doc(db, "slots", id), { ogrenci: user.name });
+          await window.load(); loading(false);
+          alert("Ders başarıyla alındı!");
+      }
+  }
+
+  window.studentCancelSlot = async function(id) {
+      loading(true);
+      const sRef = doc(db, "slots", id); const sDoc = await getDoc(sRef); const sD = sDoc.data();
+      const p = sD.tarih.split("."); const hm = sD.saat.split("-")[0].trim().split(/[.:]/);
+      const lessonDate = new Date(p[2], p[1]-1, p[0], hm[0], hm[1] || 0);
+      const hoursLeft = (lessonDate - new Date()) / (1000 * 60 * 60);
+
+      let isRefund = true;
+      if (hoursLeft < 24) {
+          loading(false);
+          if(!confirm("UYARI: Derse 24 saatten az süre kaldığı için ders hakkınız İADE EDİLMEYECEKTİR!\n\nYine de iptal etmek istiyor musunuz?")) return;
+          isRefund = false; loading(true);
+      } else {
+          loading(false);
+          if(!confirm("Dersi iptal etmek istediğinize emin misiniz? (Ders hakkınız iade edilecektir)")) return;
+          loading(true);
+      }
+
+      await updateDoc(sRef, { ogrenci: `${user.name} (İPTAL) - ${getSuan()}` }); 
+      if (isRefund) {
+          const myDoc = await getDoc(doc(db, "users", user.name));
+          await updateDoc(doc(db, "users", user.name), { hak: (parseInt(myDoc.data().hak)||0) + 1, log: `+1 hak | ${getSuan()} | Öğrenci İptal\n${myDoc.data().log||""}` }); 
+          alert("Ders iptal edildi ve 1 hakkınız iade edildi.");
+      } else {
+          alert("Ders iptal edildi. 24 saatten az kaldığı için hak iadesi yapılmadı.");
+      }
+      await window.load(); loading(false);
+  }
+
+  window.uploadDekont = function() {
+      const fileInput = document.getElementById('dekontFile');
+      if (!fileInput.files[0]) return alert("Lütfen bir dekont dosyası (Fotoğraf veya PDF) seçin!");
+      const file = fileInput.files[0];
+      loading(true);
+      if (file.type === "application/pdf") {
+          if(file.size > 2 * 1024 * 1024) { loading(false); return alert("PDF dosyası maksimum 2MB olabilir!"); }
+          const reader = new FileReader();
+          reader.onload = async function(e) {
+              try {
+                  await addDoc(collection(db, "payments"), { ogrenci: user.name, hoca: user.hoca, image: e.target.result, durum: "bekliyor", tarih: getSuan() });
+                  alert("PDF dekontunuz hocanıza iletildi!"); fileInput.value = "";
+              } catch(err) { alert("Yükleme hatası!"); }
+              loading(false);
+          }
+          reader.readAsDataURL(file);
+      } else {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              const img = new Image();
+              img.onload = async function() {
+                  const canvas = document.createElement('canvas'); const MAX = 600; const scale = MAX / img.width;
+                  canvas.width = MAX; canvas.height = img.height * scale;
+                  const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                  try {
+                      await addDoc(collection(db, "payments"), { ogrenci: user.name, hoca: user.hoca, image: canvas.toDataURL('image/jpeg', 0.7), durum: "bekliyor", tarih: getSuan() });
+                      alert("Dekont fotoğrafınız hocanıza iletildi!"); fileInput.value = "";
+                  } catch(err) { alert("Yükleme hatası!"); }
+                  loading(false);
+              }
+              img.src = e.target.result;
+          }
+          reader.readAsDataURL(file);
+      }
+  }
+
+  window.changeMyPassword = async function(inputId) {
+      const np = document.getElementById(inputId).value.trim();
+      if(np.length < 6) return alert("Şifre en az 6 haneli olmalıdır!");
+      loading(true);
+      try {
+          await updatePassword(auth.currentUser, np);
+          if(user.role === 'student') await updateDoc(doc(db, "users", user.name), { sifre: np });
+          else await updateDoc(doc(db, "users", user.name), { sifre: np });
+          alert("Şifreniz başarıyla güncellendi!"); document.getElementById(inputId).value = "";
+          await window.load();
+      } catch(e) {
+          alert("Güvenlik gereği şifre değiştirmek için lütfen Çıkış Yapıp tekrar giriş yapınız.");
+      }
+      loading(false);
+  }
+
+  window.forgotPassword = async function() {
+      let val = prompt("Kullanıcı Adınızı veya E-posta adresinizi giriniz:");
+      if(!val) return; val = val.trim();
+      if(val.includes('@')) {
+          loading(true);
+          try { await sendPasswordResetEmail(auth, val); alert("Şifre sıfırlama maili gönderildi!"); }
+          catch(e) { alert("E-posta bulunamadı!"); }
+          loading(false);
+      } else {
+          const q = query(collection(db, "users"), where("kullanici_adi", "==", val.toLowerCase()));
+          const snap = await getDocs(q);
+          if(!snap.empty) {
+              const d = snap.docs[0].data();
+              alert(`Sistemde kayıtlı şifreniz: ${d.sifre || 'Hocanızdan yeni şifre talep ediniz.'}`);
+          } else {
+              alert("Kullanıcı adı bulunamadı!");
+          }
+      }
+  }
+
+  // ================= ADMIN FONKSİYONLARI =================
+  window.adSwitch = function(t) {
+    ['P','H','D','Hak', 'Detay', 'Hatirlat', 'Durum', 'Odeme', 'Profil'].forEach(v => document.getElementById('adView'+v).style.display = 'none');
+    document.getElementById('adView'+(t==='prog'?'P':t==='hist'?'H':t==='done'?'D':t==='hak'?'Hak':t==='detay'?'Detay':t==='hatirlat'?'Hatirlat':t==='durum'?'Durum':t==='odeme'?'Odeme':'Profil')).style.display = 'block';
+    window.renderAll();
+  }
+
+  window.renderPayments = function() {
+      if (document.getElementById('adViewOdeme').style.display === 'none') return;
+      document.getElementById('odemeList').innerHTML = payments.filter(p => p.hoca === currentHocaFilter && p.durum === "bekliyor").map(p => {
+          let mediaHtml = p.image && p.image.startsWith('data:application/pdf') 
+              ? `<a href="${p.image}" download="${p.ogrenci}_dekont.pdf" style="display:block; background:var(--p); color:white; padding:10px; text-align:center; border-radius:8px; margin-bottom:10px; text-decoration:none; font-weight:bold;">📄 PDF Dekontu İndir / Aç</a>`
+              : `<img src="${p.image}" style="max-height:120px; object-fit:cover; border-radius:8px; margin-bottom:10px; cursor:zoom-in;" onclick="document.getElementById('enlargedImage').src='${p.image}'; document.getElementById('imageModal').style.display='flex';">`;
+          return `<div class="slot" style="flex-direction:column; align-items:stretch; background:#f0fdf4; border:1px solid #bbf7d0;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><b style="color:#1565c0;">${p.ogrenci}</b> <small>${p.tarih}</small></div>
+              ${mediaHtml}
+              <div style="display:flex; gap:10px;"><input type="number" id="hak_ekle_${p.id}" placeholder="Kaç Hak Eklenecek?" style="flex:2; margin:0; padding:10px; font-weight:bold;"><button onclick="approvePayment('${p.id}', '${p.ogrenci}')" class="btn-act" style="background:#16a34a; flex:1;">Onayla</button></div>
+          </div>`;
+      }).join('') || "<p style='text-align:center; color:#64748b;'>Bekleyen ödeme dekontu yok.</p>";
+  }
+
+  window.approvePayment = async function(paymentId, ogrName) {
+      const hakEklenecek = parseInt(document.getElementById(`hak_ekle_${paymentId}`).value);
+      if (isNaN(hakEklenecek) || hakEklenecek <= 0) return alert("Geçerli bir hak sayısı girin!");
+      loading(true);
+      try {
+          const uRef = doc(db, "users", ogrName); const uDoc = await getDoc(uRef); 
+          if(uDoc.exists()) {
+              await updateDoc(uRef, { hak: (parseInt(uDoc.data().hak)||0) + hakEklenecek, log: `+${hakEklenecek} hak | ${getSuan()} | Dekont Onay\n${uDoc.data().log||""}` }); 
+              await updateDoc(doc(db, "payments", paymentId), { durum: "onaylandi" });
+              alert(`${ogrName} adlı öğrenciye ${hakEklenecek} hak eklendi!`);
+          }
+      } catch(e) {}
+      await window.load(); loading(false);
+  }
+
   window.renderAdP = function() {
     const f = window.sortByTime(slots.filter(s => s.hoca === currentHocaFilter && s.isoTarih === selProg));
     document.getElementById('adList').innerHTML = f.map(s => {
@@ -349,20 +683,20 @@
         </div>`).join('') || "<p style='text-align:center;'>Kayıt yok.</p>";
   }
 
-  // --- ÖĞRENCİLER SEKMESİ: ÖĞRENCİ BAZLI FİXLE BUTONU EKLENDİ ---
+  // --- ÖĞRENCİLER SEKMESİ: SENİN ORİJİNAL GÖRÜNÜMÜN ---
   window.renderOgrList = function() {
     if (!document.getElementById('adViewHak') || document.getElementById('adViewHak').style.display === 'none') return;
     const s = document.getElementById('ogrSearch').value.toLowerCase();
     const list = students.filter(x => x.hoca === currentHocaFilter && x.isim.toLowerCase().includes(s));
     
     document.getElementById('ogrList').innerHTML = list.map(x => `
-      <div class="slot" style="flex-wrap:wrap; gap:10px;">
-          <div style="flex:1; min-width:150px;">
+      <div class="slot" style="gap:10px;">
+          <div style="flex:1;">
               <b style="color:var(--p);">${x.isim}</b><br>
               <small>Hak: <b style="color:var(--c);">${x.hak}</b> | Tel: ${x.telefon || '<span style="color:#ef4444">Yok</span>'}</small>
           </div>
-          <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end;">
-              <button onclick="handleFixleStudent('${x.isim}')" class="btn-act" style="background:#3b82f6;" title="Takvimde seçili haftadaki derslerini ileriye şablonla">Fixle</button>
+          <div style="display:flex; gap:5px; align-items:center;">
+              <button onclick="handleFixleStudent('${x.isim}')" class="btn-act" style="background:#3b82f6;">Fixle</button>
               <button onclick="openEditStudentModal('${x.isim}')" class="btn-act" style="background:#f59e0b;">Düzenle</button>
               <button onclick="addHakBtn('${x.isim}')" class="btn-act" style="background:var(--s)">+ Hak</button>
           </div>
@@ -428,15 +762,12 @@
           return;
       }
 
-      let d = new Date();
-      d.setHours(0,0,0,0);
-      let day = d.getDay();
-      let diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      const nowD = new Date();
+      const dayOfWeek = nowD.getDay() === 0 ? 7 : nowD.getDay();
+      const monday = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate() - dayOfWeek + 1);
+      monday.setHours(0,0,0,0);
       
-      let monday = new Date(d.setDate(diff));
-      
-      let endOfNextWeek = new Date(monday);
-      endOfNextWeek.setDate(monday.getDate() + 13);
+      const endOfNextWeek = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 13);
       endOfNextWeek.setHours(23,59,59,999);
 
       let olmayanlar = [];
@@ -522,7 +853,6 @@
     }).join('');
   }
 
-  // --- YENİ ÖĞRENCİ BAZLI FİXLE (HAFTALIK ŞABLON) MOTORU ---
   window.handleFixleStudent = async function(ogrName) {
       if (!confirm(`DİKKAT:\n\n${ogrName} adlı öğrencinin takvimde seçili olan haftadaki (${selProg} haftası) BÜTÜN dersleri kopyalanacak.\nÖğrencinin kalan ders hakkı bitene kadar önümüzdeki haftalara aynı gün ve saatte şablon olarak eklenecek.\n\nOnaylıyor musunuz?`)) return;
       
@@ -536,18 +866,14 @@
           const mevcutHak = parseInt(uD.hak) || 0;
           if(mevcutHak <= 0) { loading(false); return alert("Öğrencinin fixlemek için ders hakkı kalmamış!"); }
 
-          // Seçili günün (selProg) olduğu Pazartesi ve Pazar'ı bul
           const pts = selProg.split("-");
-          let baseD = new Date(pts[0], pts[1]-1, pts[2]);
-          let day = baseD.getDay();
-          let diff = baseD.getDate() - day + (day === 0 ? -6 : 1);
-          let monday = new Date(baseD.setDate(diff));
+          const baseD = new Date(pts[0], pts[1]-1, pts[2]);
+          const day = baseD.getDay() === 0 ? 7 : baseD.getDay();
+          const monday = new Date(baseD.getFullYear(), baseD.getMonth(), baseD.getDate() - day + 1);
           monday.setHours(0,0,0,0);
-          let sunday = new Date(monday);
-          sunday.setDate(monday.getDate() + 6);
+          const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
           sunday.setHours(23,59,59,999);
 
-          // Öğrencinin o seçili haftadaki tüm derslerini çek
           let weekSlots = slots.filter(s => {
               if(s.hoca !== currentHocaFilter || !s.ogrenci.startsWith(ogrName) || s.ogrenci.includes("İPTAL")) return false;
               let sPts = s.isoTarih.split('-');
@@ -560,7 +886,6 @@
               return alert(`HATA: ${ogrName} adlı öğrencinin takvimde seçili olan haftada hiç dersi yok!\n\nLütfen önce 'Program' sekmesine gidip, bu hafta için öğrencinin şablon olmasını istediğiniz derslerini oluşturun.`);
           }
 
-          // Dersleri kronolojik sıraya diz (Pazartesi, Cuma vb sırayla kopyalamak için)
           weekSlots.sort((a,b) => (a.tarih.split('.').reverse().join('')+a.saat).localeCompare(b.tarih.split('.').reverse().join('')+b.saat));
 
           let kalanHak = mevcutHak;
@@ -569,11 +894,10 @@
 
           while(kalanHak > 0) {
               for (let baseSlot of weekSlots) {
-                  if (kalanHak <= 0) break; // Hak bittiyse döngüden çık
+                  if (kalanHak <= 0) break;
                   
                   let bPts = baseSlot.isoTarih.split('-');
                   let d = new Date(bPts[0], bPts[1]-1, bPts[2]);
-                  // x hafta sonrasına git
                   d.setDate(d.getDate() + (weekOffset * 7));
                   
                   let g = String(d.getDate()).padStart(2, '0');
@@ -607,6 +931,7 @@
       loading(false);
   }
 
+  // --- EKSİK OLAN VE GERİ EKLENEN DÜZENLEME & HAK FONKSİYONLARI ---
   window.openEditStudentModal = function(isim) {
       const std = students.find(s => s.isim === isim);
       if(!std) return;
@@ -614,16 +939,34 @@
       document.getElementById('editName').value = std.isim;
       document.getElementById('editTel').value = std.telefon || "";
       document.getElementById('editHak').value = std.hak;
+      document.getElementById('editKullanici').value = std.kullanici_adi || "";
+      document.getElementById('editKullaniciPass').value = std.sifre || "";
       document.getElementById('editStudentModal').style.display = 'flex';
   }
   
   window.closeEditStudentModal = function() { document.getElementById('editStudentModal').style.display = 'none'; }
+
+  window.deleteStudentFromModal = async function() {
+      const isim = document.getElementById('editOldName').value;
+      if(!isim) return;
+      if(!confirm(`"${isim}" adlı öğrenciyi sistemden tamamen silmek istediğinize emin misiniz?`)) return;
+      loading(true);
+      try {
+          await deleteDoc(doc(db, "users", isim));
+          window.closeEditStudentModal();
+          alert(`${isim} başarıyla silindi.`);
+          await window.load();
+      } catch(e) { alert("Silme hatası: " + e.message); }
+      loading(false);
+  }
   
   window.saveEditStudent = async function() {
       const oldName = document.getElementById('editOldName').value;
       const newName = document.getElementById('editName').value.trim();
       const newTel = document.getElementById('editTel').value.trim();
       const newHak = parseInt(document.getElementById('editHak').value) || 0;
+      const uKullanici = document.getElementById('editKullanici').value.trim().toLowerCase();
+      const uPass = document.getElementById('editKullaniciPass').value.trim();
 
       if(!newName) return alert("Öğrenci ismi boş bırakılamaz!");
       
@@ -631,8 +974,34 @@
       try {
           const oldRef = doc(db, "users", oldName);
           const oldDoc = await getDoc(oldRef);
-          
           if(!oldDoc.exists()) { loading(false); return alert("Öğrenci veritabanında bulunamadı!"); }
+
+          let data = oldDoc.data();
+          data.hak = newHak;
+          data.telefon = newTel;
+
+          if (uKullanici) {
+              data.kullanici_adi = uKullanici;
+              if (uPass && uPass.length >= 6) {
+                  data.sifre = uPass;
+                  const authEmail = uKullanici + "@ogrenci.sistem.com";
+                  try {
+                      await createUserWithEmailAndPassword(secondaryAuth, authEmail, uPass);
+                      await signOut(secondaryAuth);
+                  } catch(e) {
+                      if (e.code === 'auth/email-already-in-use') {
+                          // Hesap zaten varsa eski şifresiyle girip yeni şifreyi güncellemeye çalış
+                          if (oldDoc.data().sifre) {
+                              try {
+                                  const cred = await signInWithEmailAndPassword(secondaryAuth, authEmail, oldDoc.data().sifre);
+                                  await updatePassword(cred.user, uPass);
+                                  await signOut(secondaryAuth);
+                              } catch(err2) {}
+                          }
+                      }
+                  }
+              }
+          }
 
           if (oldName !== newName) {
               const newRef = doc(db, "users", newName);
@@ -642,23 +1011,22 @@
                   loading(false); return;
               }
               
-              let data = oldDoc.data();
-              data.hak = newHak;
-              data.telefon = newTel;
               await setDoc(newRef, data);
               
               const slotsSnap = await getDocs(collection(db, "slots"));
               for(let s of slotsSnap.docs) {
                   let sData = s.data();
-                  if(sData.ogrenci === oldName || sData.ogrenci.startsWith(oldName + " (")) {
-                      let updatedName = sData.ogrenci.replace(oldName, newName);
-                      await updateDoc(doc(db, "slots", s.id), { ogrenci: updatedName });
+                  if(sData.ogrenci && typeof sData.ogrenci === "string") {
+                      if(sData.ogrenci === oldName || sData.ogrenci.startsWith(oldName + " (")) {
+                          let updatedName = sData.ogrenci.replace(oldName, newName);
+                          await updateDoc(doc(db, "slots", s.id), { ogrenci: updatedName });
+                      }
                   }
               }
               await deleteDoc(oldRef);
-              alert("Öğrencinin ismi, telefonu ve tüm ders kayıtları başarıyla güncellendi!");
+              alert("Öğrencinin ismi, bilgileri ve tüm ders kayıtları başarıyla güncellendi!");
           } else {
-              await updateDoc(oldRef, { telefon: newTel, hak: newHak });
+              await updateDoc(oldRef, data);
               alert("Öğrenci bilgileri başarıyla güncellendi!");
           }
           window.closeEditStudentModal();
@@ -667,7 +1035,18 @@
       loading(false);
   }
 
-  window.loginAuth = async function() { loading(true); try { await signInWithEmailAndPassword(auth, document.getElementById('u').value.trim(), document.getElementById('p').value.trim()); } catch(e) { alert("Hata: " + e.message); } loading(false); }
+  window.loginAuth = async function() { 
+      loading(true); 
+      let kAdi = document.getElementById('u').value.trim();
+      const pass = document.getElementById('p').value.trim();
+      if (!kAdi.includes('@')) kAdi = kAdi.toLowerCase() + "@ogrenci.sistem.com";
+      try { 
+          await signInWithEmailAndPassword(auth, kAdi, pass); 
+      } catch(e) { 
+          alert("Hata: Kullanıcı adı veya şifre hatalı!"); 
+      } 
+      loading(false); 
+  }
   window.logoutAuth = function() { signOut(auth); }
   window.showLogin = function() { document.getElementById('publicBox').style.display = "none"; document.getElementById('loginBox').style.display = "block"; }
   window.hideLogin = function() { document.getElementById('loginBox').style.display = "none"; document.getElementById('publicBox').style.display = "block"; }
@@ -720,7 +1099,11 @@
   }
   
   window.sil = async function(id) { if(confirm("Silinsin mi?")) { loading(true); await deleteDoc(doc(db, "slots", id)); await window.load(); loading(false); } }
-  window.adInit = function() { flatpickr("#adPick", {inline:true, locale:"tr", onChange:(d,s)=>{selProg=s; document.getElementById('addArea').style.display = 'block'; window.renderAll();}}); flatpickr("#donePick", {inline:true, locale:"tr", onChange:(d,s)=>{selDone=s; window.renderDone();}}); }
+  window.adInit = function() { 
+      if(typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.tr) flatpickr.localize(flatpickr.l10ns.tr);
+      flatpickr("#adPick", {inline:true, locale:window.getLoc(), onChange:(d,s)=>{selProg=s; document.getElementById('addArea').style.display = 'block'; window.renderAll();}}); 
+      flatpickr("#donePick", {inline:true, locale:window.getLoc(), onChange:(d,s)=>{selDone=s; window.renderDone();}}); 
+  }
   window.openTimeModal = function() { document.getElementById('timeModal').style.display="flex"; }
   window.closeTimeModal = function() { document.getElementById('timeModal').style.display="none"; }
   window.confirmTime = async function() { 
@@ -733,7 +1116,7 @@
   }
   window.openOgrModal = function(id) { const sel = document.getElementById('ogrSelect'); sel.innerHTML = ""; students.filter(x => x.hoca === currentHocaFilter).forEach(x => sel.add(new Option(x.isim + " (Hak:"+x.hak+")", x.isim))); document.getElementById('tempRow').value = id; document.getElementById('ogrModal').style.display="flex"; }
   window.closeOgrModal = function() { document.getElementById('ogrModal').style.display="none"; }
-  window.confirmOgr = async function() { const n = document.getElementById('ogrSelect').value; const id = document.getElementById('tempRow').value; window.closeOgrModal(); loading(true); const uRef = doc(db, "users", n); const uD = (await getDoc(uRef)).data(); if(uD.hak <= 0) { alert("Hak yok!"); loading(false); return; } await updateDoc(uRef, { hak: uD.hak - 1, log: `-1 hak | ${getSuan()} | Ders Alındı\n${uD.log||""}` }); await updateDoc(doc(db, "slots", id), { ogrenci: n }); await window.load(); loading(false); }
+  window.confirmOgr = async function() { const n = document.getElementById('ogrSelect').value; const id = document.getElementById('tempRow').value; window.closeOgrModal(); loading(true); const uRef = doc(db, "users", n); const uD = (await getDoc(uRef)).data(); if((parseInt(uD.hak)||0) <= 0) { alert("Hak yok!"); loading(false); return; } await updateDoc(uRef, { hak: (parseInt(uD.hak)||0) - 1, log: `-1 hak | ${getSuan()} | Ders Alındı\n${uD.log||""}` }); await updateDoc(doc(db, "slots", id), { ogrenci: n }); await window.load(); loading(false); }
   window.toggleUserFields = function() { const r = document.getElementById('newURole').value; document.getElementById('passGroup').style.display = r==='student' ? 'none' : 'block'; document.getElementById('studentGroup').style.display = r==='student' ? 'block' : 'none'; }
   
   window.openUserModal = function() { 
@@ -761,9 +1144,10 @@
               log: "Eklendi." 
           }); 
       } else { 
-          await createUserWithEmailAndPassword(secondaryAuth, n, document.getElementById('newUPass').value); 
+          const pass = document.getElementById('newUPass').value;
+          await createUserWithEmailAndPassword(secondaryAuth, n, pass); 
           await signOut(secondaryAuth); 
-          await setDoc(doc(db, "users", n), { role: r }); 
+          await setDoc(doc(db, "users", n), { role: r, sifre: pass }); 
       } 
       window.closeUserModal(); await window.load(); loading(false); 
   }
